@@ -52,7 +52,7 @@ export function Footer() {
             className="inline-flex rounded-xl bg-white px-4 py-2.5"
             aria-label="PharmaLink home"
           >
-            <Logo variant="full" height={52} />
+            <Logo variant="full" height={60} />
           </Link>
 
           <div className="flex items-center gap-2">
