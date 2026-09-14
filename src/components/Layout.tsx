@@ -13,13 +13,16 @@ import { Header } from './Header'
 export function Layout({
   children,
   header = 'default',
+  floatingCart = true,
 }: {
   children: ReactNode
   header?: 'default' | 'none'
+  /** Store pages set this false — they carry their own bottom cart bar. */
+  floatingCart?: boolean
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      {header === 'default' ? <Header /> : <CartMenuButton />}
+      {header === 'default' ? <Header /> : floatingCart && <CartMenuButton />}
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />

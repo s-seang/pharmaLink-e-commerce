@@ -1,9 +1,9 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
+import { BannerCarousel } from '../components/BannerCarousel'
 import { DiscountCarousel } from '../components/DiscountCarousel'
 import { Layout } from '../components/Layout'
 import { SectionHeader } from '../components/SectionHeader'
-import { StoreCarousel } from '../components/StoreCarousel'
 import { STORE_ROW_HEIGHT, StoreRow } from '../components/StoreRow'
 import { useApp } from '../context/AppContext'
 import { stores } from '../data'
@@ -31,8 +31,7 @@ export default function Home() {
     <Layout>
       <div className="app-container space-y-10 py-5">
         <section>
-          <SectionHeader title="Our pharmacies" viewAllTo="/stores" viewAllLabel="View all pharmacies" />
-          <StoreCarousel />
+          <BannerCarousel />
         </section>
 
         <section className="rounded-card bg-surface p-4">

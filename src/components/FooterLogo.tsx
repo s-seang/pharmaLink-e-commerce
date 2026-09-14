@@ -1,7 +1,7 @@
-import logoImg from '../assets/logo.png'  // ← match your exact filename/extension
+import footerLogoImg from '../assets/footerLogo.png' // ← match your exact filename/extension
 
-export function Logo({
-  height = 36,
+export function FooterLogo({
+  height = 32,
   className = '',
 }: {
   height?: number
@@ -9,11 +9,10 @@ export function Logo({
 }) {
   return (
     <img
-      src={logoImg}
+      src={footerLogoImg}
       alt="PharmaLink"
       style={{ height }}
       className={`w-auto object-contain ${className}`}
     />
   )
 }
-

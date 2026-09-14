@@ -89,7 +89,7 @@ function LogoBar() {
   return (
     <div className="app-container flex items-center justify-between gap-3 py-2.5">
       <Link to="/" className="flex items-center gap-2" aria-label="PharmaLink home">
-        <Logo size={36} />
+        <Logo height={36} />
         <span className="font-script text-[25px] leading-none text-navy sm:text-[28px]">
           Welcome
         </span>

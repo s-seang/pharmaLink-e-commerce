@@ -15,7 +15,7 @@ npm run lint
 
 | Route | Page | Notes |
 | --- | --- | --- |
-| `/` | Home | Store carousel (auto-scrolls), discount rail (manual scroll), nearest pharmacies |
+| `/` | Home | Promo banners, discount rail, nearest pharmacies — all manual scroll |
 | `/search` | Product results | `?category=` and `?q=`; compact search pill instead of the logo row |
 | `/product/:id` | Product detail | Store card, add to cart, consult, related rails |
 | `/store/:id` | Pharmacy | Navy band, about section, product grid, floating Consult button |
@@ -29,7 +29,7 @@ Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared place
 
 - `src/data/` — types plus mock stores and products, and the selectors over them
 - `src/context/AppContext.tsx` — auth, cart, favourites, geolocation; persisted to `localStorage`
-- `src/hooks/` — `useAutoScroll` (the store carousel only), `useHideOnScroll` (header), `useIsTouch`
+- `src/hooks/` — `useHideOnScroll` (header), `useBackdropTone` (contrast), `useFooterClearance`, `useIsTouch`
 - `src/components/` — shell (header, footer, layout, modals) and shared cards
 - `src/lib/geo.ts` — haversine distance, Phnom Penh fallback, `tel:` and map links
 
@@ -59,8 +59,9 @@ separate category would have made those products unreachable by chip.
 - **Product artwork is generated,** not fetched. `ProductImage` draws an SVG from the
   product's `imageSeed` and category, so the app has no external image dependency.
   Swap it for real photography when assets exist.
-- **The logo is a placeholder** (`src/components/Logo.tsx` and `public/logo.svg`).
-  It is the mark only — no wordmark, no tagline.
+- **The logo loads from `public/logo.png`.** Drop the real artwork in at that path
+  and it appears everywhere. Until that file exists, `Logo.tsx` falls back to a drawn
+  placeholder, so nothing renders a broken image.
 - **Consultation numbers are per store** (`store.phone`), used by the call button on
   product cards, the Consult button on product detail, and the floating button on
   store pages.

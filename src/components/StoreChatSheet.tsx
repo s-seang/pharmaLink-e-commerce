@@ -23,6 +23,9 @@ const CANNED_REPLIES = [
  * visible while you type. The top edge tracks the band as the page scrolls, and
  * clamps to the top of the viewport once the band has scrolled away.
  */
+/** How far the sheet must be pulled down before releasing dismisses it. */
+const DISMISS_AT = 120
+
 export function StoreChatSheet({
   store,
   open,
@@ -46,6 +49,28 @@ export function StoreChatSheet({
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const replyTimer = useRef<number>(0)
+
+  // Drag-to-dismiss: pull the sheet down past DISMISS_AT and it closes.
+  const [drag, setDrag] = useState(0)
+  const dragFrom = useRef<number | null>(null)
+
+  const startDrag = (event: React.PointerEvent) => {
+    dragFrom.current = event.clientY
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const moveDrag = (event: React.PointerEvent) => {
+    if (dragFrom.current === null) return
+    // Downward only — dragging up should not lift the sheet off its anchor.
+    setDrag(Math.max(0, event.clientY - dragFrom.current))
+  }
+
+  const endDrag = () => {
+    if (dragFrom.current === null) return
+    dragFrom.current = null
+    if (drag > DISMISS_AT) onClose()
+    setDrag(0)
+  }
 
   useEffect(() => {
     if (!open) return
@@ -103,17 +128,36 @@ export function StoreChatSheet({
         aria-modal="false"
         aria-label={`Chat with ${store.name}`}
         aria-hidden={!open}
-        style={{ top }}
+        style={{
+          top,
+          transform: drag ? `translateY(${drag}px)` : undefined,
+          transition: drag ? 'none' : undefined,
+        }}
         className={`fixed inset-x-0 bottom-0 z-[56] flex flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
           open ? 'translate-y-0' : 'pointer-events-none translate-y-full'
         }`}
       >
-        {/* Grab handle, so it reads as something you pulled up. */}
-        <div className="flex justify-center pt-2.5">
+        {/* Grab handle. Drag this or the header downwards to dismiss. */}
+        <div
+          onPointerDown={startDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="flex cursor-grab touch-none justify-center py-2.5 active:cursor-grabbing"
+          role="button"
+          tabIndex={-1}
+          aria-label="Drag down to close chat"
+        >
           <span className="h-1 w-10 rounded-full bg-line" aria-hidden="true" />
         </div>
 
-        <header className="flex items-center gap-3 border-b border-line px-4 py-3">
+        <header
+          onPointerDown={startDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="flex touch-none items-center gap-3 border-b border-line px-4 pb-3"
+        >
           <StoreLogo store={store} size={40} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-ink">{store.name}</p>

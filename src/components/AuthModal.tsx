@@ -62,7 +62,7 @@ function AuthDialog({ initialTab }: { initialTab: AuthTab }) {
       <div className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-lg sm:rounded-2xl">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Logo size={32} />
+            <Logo height={32} />
             <div>
               <p className="text-sm font-semibold text-ink">PharmaLink</p>
               <p className="text-xs text-muted">Healthcare Connections</p>

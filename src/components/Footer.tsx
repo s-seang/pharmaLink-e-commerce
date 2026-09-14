@@ -47,9 +47,12 @@ export function Footer() {
         <div className="my-7 h-px bg-white/15" />
 
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link to="/" className="flex items-center gap-2" aria-label="PharmaLink home">
-            <Logo size={32} />
-            <span className="text-sm font-semibold text-white">PharmaLink</span>
+          <Link
+            to="/"
+            className="inline-flex rounded-xl bg-white px-4 py-2.5"
+            aria-label="PharmaLink home"
+          >
+            <Logo variant="full" height={52} />
           </Link>
 
           <div className="flex items-center gap-2">
