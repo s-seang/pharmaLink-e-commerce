@@ -1,0 +1,538 @@
+import type { Product } from './types'
+
+/**
+ * Products are not rated — ratings belong to the store selling them.
+ * The same product can be listed by several stores at different prices;
+ * those share a name and differ only by id and storeId.
+ */
+export const products: Product[] = [
+  // ---------- Medicine ----------
+  {
+    id: 'paracetamol-500-ppp',
+    name: 'Paracetamol 500mg',
+    summary: 'Pain and fever relief, 20 tablets',
+    description:
+      'Paracetamol 500mg tablets for the relief of mild to moderate pain and to reduce fever. Suitable for headache, toothache, period pain, and cold or flu symptoms. Adults and children over 12: one to two tablets every four to six hours, no more than eight tablets in 24 hours.',
+    category: 'Medicine',
+    storeId: 'phnom-penh-pharmacy',
+    price: 1.5,
+    discountPercent: 20,
+    imageSeed: 1,
+  },
+  {
+    id: 'paracetamol-500-green-cross',
+    name: 'Paracetamol 500mg',
+    summary: 'Pain and fever relief, 20 tablets',
+    description:
+      'Paracetamol 500mg tablets for the relief of mild to moderate pain and to reduce fever. Adults and children over 12: one to two tablets every four to six hours, no more than eight tablets in 24 hours.',
+    category: 'Medicine',
+    storeId: 'green-cross',
+    price: 1.3,
+    imageSeed: 1,
+  },
+  {
+    id: 'paracetamol-500-lotus',
+    name: 'Paracetamol 500mg',
+    summary: 'Pain and fever relief, 20 tablets',
+    description:
+      'Paracetamol 500mg tablets for headache, toothache, period pain, and cold or flu symptoms. Take with water, with or without food.',
+    category: 'Medicine',
+    storeId: 'lotus-pharmacy',
+    price: 1.75,
+    imageSeed: 1,
+  },
+  {
+    id: 'amoxicillin-500',
+    name: 'Amoxicillin 500mg',
+    summary: 'Broad-spectrum antibiotic, 16 capsules',
+    description:
+      'Amoxicillin 500mg capsules, a penicillin antibiotic used to treat bacterial infections of the chest, ear, throat and urinary tract. Prescription required — complete the full course as directed by your doctor.',
+    category: 'Medicine',
+    storeId: 'sunrise-pharma',
+    price: 4.2,
+    imageSeed: 2,
+  },
+  {
+    id: 'ibuprofen-400',
+    name: 'Ibuprofen 400mg',
+    summary: 'Anti-inflammatory pain relief, 30 tablets',
+    description:
+      'Ibuprofen 400mg film-coated tablets. A non-steroidal anti-inflammatory for muscular pain, back pain, arthritis and dental pain. Take with food. Not recommended for people with stomach ulcers.',
+    category: 'Medicine',
+    storeId: 'angkor-care',
+    price: 2.8,
+    discountPercent: 15,
+    imageSeed: 3,
+  },
+  {
+    id: 'ibuprofen-400-city-med',
+    name: 'Ibuprofen 400mg',
+    summary: 'Anti-inflammatory pain relief, 30 tablets',
+    description:
+      'Ibuprofen 400mg tablets for muscular pain, back pain, arthritis and dental pain. Take with food.',
+    category: 'Medicine',
+    storeId: 'city-med',
+    price: 3.1,
+    imageSeed: 3,
+  },
+  {
+    id: 'ors-sachets',
+    name: 'Oral Rehydration Salts',
+    summary: 'Electrolyte sachets for dehydration, 10 pack',
+    description:
+      'WHO-formula oral rehydration salts. Dissolve one sachet in 200ml of clean water to replace fluid and electrolytes lost through diarrhoea, vomiting or heat exhaustion.',
+    category: 'Medicine',
+    storeId: 'green-cross',
+    price: 2.0,
+    imageSeed: 4,
+  },
+  {
+    id: 'cetirizine-10',
+    name: 'Cetirizine 10mg',
+    summary: 'Non-drowsy antihistamine, 20 tablets',
+    description:
+      'Cetirizine hydrochloride 10mg for hay fever, dust allergy, hives and itchy eyes. One tablet daily. Generally non-drowsy, but avoid alcohol while taking it.',
+    category: 'Medicine',
+    storeId: 'harmony-pharmacy',
+    price: 3.1,
+    imageSeed: 5,
+  },
+  {
+    id: 'omeprazole-20',
+    name: 'Omeprazole 20mg',
+    summary: 'Acid reflux and heartburn relief, 14 capsules',
+    description:
+      'Omeprazole 20mg gastro-resistant capsules reduce stomach acid production to relieve heartburn, acid reflux and indigestion. Take one capsule in the morning before food.',
+    category: 'Medicine',
+    storeId: 'lotus-pharmacy',
+    price: 5.4,
+    discountPercent: 25,
+    imageSeed: 6,
+  },
+  {
+    id: 'salbutamol-inhaler',
+    name: 'Salbutamol Inhaler',
+    summary: 'Reliever inhaler, 200 doses',
+    description:
+      'Salbutamol 100mcg metered dose inhaler for the relief of asthma symptoms and exercise-induced bronchospasm. Shake before use. Prescription required.',
+    category: 'Medicine',
+    storeId: 'phnom-penh-pharmacy',
+    price: 8.9,
+    imageSeed: 7,
+  },
+  {
+    id: 'antiseptic-cream',
+    name: 'Antiseptic Wound Cream',
+    summary: 'For cuts, grazes and minor burns, 30g',
+    description:
+      'Antiseptic cream with cetrimide for cleaning and protecting minor wounds, grazes, insect bites and small burns. Apply a thin layer up to three times daily.',
+    category: 'Medicine',
+    storeId: 'bayon-drugstore',
+    price: 2.6,
+    imageSeed: 8,
+  },
+  {
+    id: 'cough-syrup',
+    name: 'Herbal Cough Syrup',
+    summary: 'Soothes dry and chesty cough, 120ml',
+    description:
+      'A honey and herbal extract syrup that soothes irritated throats and loosens chesty coughs. Suitable from six years old. Two teaspoons three times a day.',
+    category: 'Medicine',
+    storeId: 'mekong-health',
+    price: 3.8,
+    discountPercent: 10,
+    imageSeed: 9,
+  },
+
+  // ---------- Cosmetic (skincare, make-up and beauty) ----------
+  {
+    id: 'bioderma-sleeping-mask-sunrise',
+    name: 'Bioderma Hydrabio Sleeping Mask',
+    summary: 'Overnight hydrating mask, 75ml',
+    description:
+      'A leave-on night mask that floods dehydrated skin with water-binding actives while you sleep, so you wake up plump and comfortable. Apply a generous layer as the last step of your evening routine, two to three nights a week.',
+    category: 'Cosmetic',
+    storeId: 'sunrise-pharma',
+    price: 26.0,
+    discountPercent: 20,
+    imageSeed: 34,
+  },
+  {
+    id: 'bioderma-sleeping-mask-harmony',
+    name: 'Bioderma Hydrabio Sleeping Mask',
+    summary: 'Overnight hydrating mask, 75ml',
+    description:
+      'An overnight hydrating mask for dehydrated and sensitive skin. Apply as the last step of your evening routine and rinse in the morning.',
+    category: 'Cosmetic',
+    storeId: 'harmony-pharmacy',
+    price: 24.5,
+    imageSeed: 34,
+  },
+  {
+    id: 'bioderma-sleeping-mask-angkor',
+    name: 'Bioderma Hydrabio Sleeping Mask',
+    summary: 'Overnight hydrating mask, 75ml',
+    description:
+      'Bioderma Hydrabio overnight mask. Water-binding actives replenish dehydrated skin through the night. Fragrance-free.',
+    category: 'Cosmetic',
+    storeId: 'angkor-care',
+    price: 27.9,
+    imageSeed: 34,
+  },
+  {
+    id: 'spf50-sunscreen',
+    name: 'Daily Sunscreen SPF 50+',
+    summary: 'Lightweight broad-spectrum UV protection, 50ml',
+    description:
+      'A non-greasy broad-spectrum SPF 50+ PA++++ sunscreen that absorbs in seconds and sits well under make-up. Water resistant for 40 minutes. Reapply every two hours in strong sun.',
+    category: 'Cosmetic',
+    storeId: 'sunrise-pharma',
+    price: 14.9,
+    discountPercent: 30,
+    imageSeed: 11,
+  },
+  {
+    id: 'gentle-cleanser',
+    name: 'Gentle Foaming Cleanser',
+    summary: 'Soap-free daily face wash, 150ml',
+    description:
+      'A pH-balanced foaming cleanser that removes sunscreen, sweat and pollution without stripping the skin barrier. Fragrance-free and suitable for sensitive skin.',
+    category: 'Cosmetic',
+    storeId: 'angkor-care',
+    price: 9.5,
+    imageSeed: 12,
+  },
+  {
+    id: 'niacinamide-serum',
+    name: 'Niacinamide 10% Serum',
+    summary: 'Evens tone and reduces shine, 30ml',
+    description:
+      'A lightweight serum with 10% niacinamide and 1% zinc to visibly reduce the look of enlarged pores, control excess oil and even out skin tone. Use morning and night after cleansing.',
+    category: 'Cosmetic',
+    storeId: 'harmony-pharmacy',
+    price: 12.0,
+    discountPercent: 25,
+    imageSeed: 13,
+  },
+  {
+    id: 'ceramide-moisturiser',
+    name: 'Ceramide Moisturising Cream',
+    summary: 'Barrier-repair cream for dry skin, 100ml',
+    description:
+      'A rich but fast-absorbing cream with three ceramides and hyaluronic acid to restore the skin barrier and hold moisture for 24 hours. Dermatologist tested, non-comedogenic.',
+    category: 'Cosmetic',
+    storeId: 'sunrise-pharma',
+    price: 16.5,
+    imageSeed: 14,
+  },
+  {
+    id: 'acne-spot-gel',
+    name: 'Acne Spot Treatment Gel',
+    summary: 'Targets blemishes overnight, 15g',
+    description:
+      'A clear drying gel with 2% salicylic acid and tea tree oil that reduces the size and redness of spots overnight. Dab onto blemishes only, avoid the surrounding skin.',
+    category: 'Cosmetic',
+    storeId: 'lotus-pharmacy',
+    price: 7.2,
+    imageSeed: 15,
+  },
+  {
+    id: 'micellar-water',
+    name: 'Micellar Cleansing Water',
+    summary: 'No-rinse make-up remover, 400ml',
+    description:
+      'Micellar water that lifts make-up, sunscreen and grime in one sweep with no rinsing needed. Alcohol-free and safe around the eyes, including for contact lens wearers.',
+    category: 'Cosmetic',
+    storeId: 'green-cross',
+    price: 6.8,
+    discountPercent: 15,
+    imageSeed: 16,
+  },
+  {
+    id: 'hydrating-toner',
+    name: 'Hydrating Rice Toner',
+    summary: 'Alcohol-free hydrating toner, 200ml',
+    description:
+      'A watery toner with fermented rice extract and panthenol that preps the skin and adds a first layer of hydration. Pat in with your hands after cleansing.',
+    category: 'Cosmetic',
+    storeId: 'city-med',
+    price: 8.4,
+    imageSeed: 17,
+  },
+  {
+    id: 'sheet-mask-pack',
+    name: 'Aloe Sheet Mask, 5 pack',
+    summary: 'Cooling after-sun sheet masks',
+    description:
+      'Five cotton sheet masks soaked in aloe vera and centella essence to calm hot, sun-exposed skin. Keep in the fridge for extra relief. Leave on for 15 minutes.',
+    category: 'Cosmetic',
+    storeId: 'angkor-care',
+    price: 5.0,
+    imageSeed: 18,
+  },
+  {
+    id: 'eye-cream',
+    name: 'Caffeine Eye Cream',
+    summary: 'De-puffs and brightens, 15ml',
+    description:
+      'A light gel-cream with caffeine and peptides for tired-looking eyes. Tap a rice-grain amount along the orbital bone morning and night.',
+    category: 'Cosmetic',
+    storeId: 'harmony-pharmacy',
+    price: 11.9,
+    imageSeed: 19,
+  },
+  {
+    id: 'tinted-lip-balm',
+    name: 'Tinted Lip Balm SPF 15',
+    summary: 'Sheer colour with sun protection',
+    description:
+      'A nourishing lip balm with a sheer rose tint and SPF 15. Shea butter and vitamin E keep lips soft through the dry season.',
+    category: 'Cosmetic',
+    storeId: 'sunrise-pharma',
+    price: 4.5,
+    discountPercent: 20,
+    imageSeed: 20,
+  },
+  {
+    id: 'bb-cushion',
+    name: 'BB Cushion Compact SPF 35',
+    summary: 'Light coverage with SPF, 15g',
+    description:
+      'A cushion compact that evens out the complexion with buildable light coverage, SPF 35 and a natural finish. Comes with a refill sponge.',
+    category: 'Cosmetic',
+    storeId: 'harmony-pharmacy',
+    price: 18.0,
+    imageSeed: 21,
+  },
+  {
+    id: 'matte-lipstick',
+    name: 'Matte Lipstick',
+    summary: 'Long-wear matte finish',
+    description:
+      'A creamy matte lipstick that wears for up to eight hours without drying the lips, thanks to jojoba oil and vitamin E in the base.',
+    category: 'Cosmetic',
+    storeId: 'lotus-pharmacy',
+    price: 9.9,
+    imageSeed: 22,
+  },
+  {
+    id: 'brow-pencil',
+    name: 'Precision Brow Pencil',
+    summary: 'Fine tip with spoolie brush',
+    description:
+      'A retractable 1.5mm brow pencil that draws hair-like strokes, with a spoolie on the other end to blend. Smudge-resistant in humid weather.',
+    category: 'Cosmetic',
+    storeId: 'city-med',
+    price: 6.2,
+    discountPercent: 10,
+    imageSeed: 23,
+  },
+  {
+    id: 'cleansing-oil',
+    name: 'Make-up Cleansing Oil',
+    summary: 'First-step oil cleanser, 200ml',
+    description:
+      'A lightweight cleansing oil that melts down long-wear make-up and sunscreen, then emulsifies with water and rinses clean. Use as the first step of a double cleanse.',
+    category: 'Cosmetic',
+    storeId: 'angkor-care',
+    price: 10.5,
+    imageSeed: 24,
+  },
+
+  // ---------- Supplement ----------
+  {
+    id: 'vitamin-c-1000',
+    name: 'Vitamin C 1000mg',
+    summary: 'Immune support, 60 tablets',
+    description:
+      'Vitamin C 1000mg with rosehip for immune support and normal collagen formation. One tablet daily with food. Suitable for vegetarians.',
+    category: 'Supplement',
+    storeId: 'phnom-penh-pharmacy',
+    price: 7.5,
+    discountPercent: 20,
+    imageSeed: 25,
+  },
+  {
+    id: 'vitamin-c-1000-bayon',
+    name: 'Vitamin C 1000mg',
+    summary: 'Immune support, 60 tablets',
+    description:
+      'Vitamin C 1000mg tablets for immune support and normal collagen formation. One tablet daily with food.',
+    category: 'Supplement',
+    storeId: 'bayon-drugstore',
+    price: 6.9,
+    imageSeed: 25,
+  },
+  {
+    id: 'vitamin-d3',
+    name: 'Vitamin D3 2000 IU',
+    summary: 'Bone and immune health, 90 softgels',
+    description:
+      'Vitamin D3 (cholecalciferol) 2000 IU softgels supporting normal bone, muscle and immune function. One softgel daily with a meal containing fat.',
+    category: 'Supplement',
+    storeId: 'sunrise-pharma',
+    price: 9.2,
+    imageSeed: 26,
+  },
+  {
+    id: 'omega-3',
+    name: 'Omega-3 Fish Oil 1000mg',
+    summary: 'Heart and brain support, 100 capsules',
+    description:
+      'Molecularly distilled fish oil providing 180mg EPA and 120mg DHA per capsule for normal heart and brain function. Two capsules daily with food.',
+    category: 'Supplement',
+    storeId: 'harmony-pharmacy',
+    price: 13.4,
+    discountPercent: 15,
+    imageSeed: 27,
+  },
+  {
+    id: 'iron-folic',
+    name: 'Iron + Folic Acid',
+    summary: 'For pregnancy and low iron, 60 tablets',
+    description:
+      'Gentle iron bisglycinate with folic acid and vitamin B12, commonly taken during pregnancy or to support low iron levels. Less likely to cause constipation than iron sulphate.',
+    category: 'Supplement',
+    storeId: 'lotus-pharmacy',
+    price: 6.9,
+    imageSeed: 28,
+  },
+  {
+    id: 'probiotic-caps',
+    name: 'Daily Probiotic 10 Billion CFU',
+    summary: 'Gut health, 30 capsules',
+    description:
+      'A multi-strain probiotic delivering 10 billion live cultures per capsule to support digestive balance, including after a course of antibiotics. No refrigeration needed.',
+    category: 'Supplement',
+    storeId: 'green-cross',
+    price: 15.0,
+    imageSeed: 29,
+  },
+  {
+    id: 'zinc-tablets',
+    name: 'Zinc 25mg',
+    summary: 'Skin and immune support, 60 tablets',
+    description:
+      'Zinc gluconate 25mg supporting normal immune function, skin health and wound healing. One tablet daily with food.',
+    category: 'Supplement',
+    storeId: 'mekong-health',
+    price: 5.6,
+    imageSeed: 30,
+  },
+  {
+    id: 'multivitamin',
+    name: 'Adult Multivitamin',
+    summary: 'A to Z daily cover, 90 tablets',
+    description:
+      'A complete multivitamin and mineral tablet covering 23 nutrients including B vitamins, vitamin D, iron and magnesium. One tablet daily with breakfast.',
+    category: 'Supplement',
+    storeId: 'royal-medic',
+    price: 11.0,
+    imageSeed: 31,
+  },
+  {
+    id: 'collagen-powder',
+    name: 'Marine Collagen Powder',
+    summary: 'Unflavoured, 300g tub',
+    description:
+      'Hydrolysed marine collagen peptides with added vitamin C, which contributes to normal collagen formation for skin and joints. Mix one scoop into water, coffee or a smoothie.',
+    category: 'Supplement',
+    storeId: 'sunrise-pharma',
+    price: 24.0,
+    discountPercent: 25,
+    imageSeed: 32,
+  },
+  {
+    id: 'magnesium-glycinate',
+    name: 'Magnesium Glycinate 400mg',
+    summary: 'Muscle relaxation and sleep, 60 capsules',
+    description:
+      'Highly absorbable magnesium glycinate supporting normal muscle function and a calm nervous system. Two capsules in the evening.',
+    category: 'Supplement',
+    storeId: 'bayon-drugstore',
+    price: 12.8,
+    imageSeed: 33,
+  },
+
+  // ---------- Medical Equipment ----------
+  {
+    id: 'digital-thermometer',
+    name: 'Digital Thermometer',
+    summary: 'Fast-read clinical thermometer',
+    description:
+      'Digital clinical thermometer with a 10-second read, fever alarm and flexible tip. Suitable for oral, underarm and rectal use. Includes a protective case and battery.',
+    category: 'Medical Equipment',
+    storeId: 'city-med',
+    price: 6.5,
+    imageSeed: 35,
+  },
+  {
+    id: 'blood-pressure-monitor',
+    name: 'Upper Arm Blood Pressure Monitor',
+    summary: 'Automatic digital monitor with cuff',
+    description:
+      'Automatic upper-arm blood pressure monitor with an irregular heartbeat indicator, two-user memory for 90 readings each, and a wide-range cuff. Mains adapter or four AA batteries.',
+    category: 'Medical Equipment',
+    storeId: 'phnom-penh-pharmacy',
+    price: 38.0,
+    discountPercent: 15,
+    imageSeed: 36,
+  },
+  {
+    id: 'pulse-oximeter',
+    name: 'Fingertip Pulse Oximeter',
+    summary: 'Blood oxygen and pulse rate',
+    description:
+      'Fingertip pulse oximeter showing blood oxygen saturation and pulse rate on a bright OLED display in about eight seconds. Auto power-off, lanyard and batteries included.',
+    category: 'Medical Equipment',
+    storeId: 'harmony-pharmacy',
+    price: 19.5,
+    imageSeed: 37,
+  },
+  {
+    id: 'glucose-meter',
+    name: 'Blood Glucose Meter Kit',
+    summary: 'Meter, lancets and 25 test strips',
+    description:
+      'A complete blood glucose starter kit: meter, lancing device, 25 lancets, 25 test strips and a carry case. Results in five seconds from a small blood sample.',
+    category: 'Medical Equipment',
+    storeId: 'sunrise-pharma',
+    price: 29.0,
+    discountPercent: 20,
+    imageSeed: 38,
+  },
+  {
+    id: 'nebuliser',
+    name: 'Compressor Nebuliser',
+    summary: 'For asthma and respiratory therapy',
+    description:
+      'Compact compressor nebuliser that converts liquid medication into a fine mist for the airways. Includes adult and child masks, mouthpiece and spare filters.',
+    category: 'Medical Equipment',
+    storeId: 'lotus-pharmacy',
+    price: 45.0,
+    imageSeed: 39,
+  },
+  {
+    id: 'first-aid-kit',
+    name: 'Home First Aid Kit',
+    summary: '52-piece kit in a soft case',
+    description:
+      'A 52-piece first aid kit with plasters, sterile gauze, crepe bandage, antiseptic wipes, scissors, tweezers, gloves and a foil blanket in a zipped soft case.',
+    category: 'Medical Equipment',
+    storeId: 'green-cross',
+    price: 14.0,
+    discountPercent: 10,
+    imageSeed: 40,
+  },
+  {
+    id: 'walking-stick',
+    name: 'Adjustable Walking Stick',
+    summary: 'Height-adjustable aluminium cane',
+    description:
+      'Lightweight aluminium walking stick, adjustable from 76cm to 99cm, with a soft moulded grip, wrist strap and non-slip rubber ferrule. Supports up to 100kg.',
+    category: 'Medical Equipment',
+    storeId: 'royal-medic',
+    price: 16.5,
+    imageSeed: 41,
+  },
+]

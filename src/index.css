@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white text-ink font-sans antialiased;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  /* Hide scrollbars on horizontal rails while keeping them scrollable. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-full max-w-app px-4;
+  }
+
+  .card {
+    @apply rounded-card border border-line bg-white;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-navy text-white hover:bg-navy-deep;
+  }
+
+  .btn-teal-outline {
+    @apply btn border border-teal text-teal hover:bg-teal-tint;
+  }
+
+  .btn-outline {
+    @apply btn border border-line text-ink hover:bg-surface;
+  }
+
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm text-ink transition-colors hover:border-navy;
+  }
+
+  .chip-active {
+    @apply border-navy bg-navy text-white hover:border-navy;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-ink;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-navy;
+  }
+}
