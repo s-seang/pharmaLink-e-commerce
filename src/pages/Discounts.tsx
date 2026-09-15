@@ -85,9 +85,9 @@ export default function Discounts() {
             No discounts in {category} right now.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
             {items.map((product) => (
-              <ProductCard key={product.id} product={product} description="full" />
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

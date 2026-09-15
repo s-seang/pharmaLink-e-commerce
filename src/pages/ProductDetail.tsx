@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart, MapPin, Phone, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Heart, MapPin, Minus, Phone, Plus, ShoppingCart } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { ProductCard } from '../components/ProductCard'
@@ -20,7 +20,7 @@ import { distanceKm, formatDistance, telHref } from '../lib/geo'
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addToCart, toggleFavourite, isFavourite, coords } = useApp()
+  const { addToCart, setQuantity, openCart, cart, toggleFavourite, isFavourite, coords } = useApp()
 
   const product = getProduct(id)
 
@@ -38,6 +38,7 @@ export default function ProductDetail() {
   }
 
   const store = getStore(product.storeId)
+  const inCart = cart.find((item) => item.productId === product.id)?.quantity ?? 0
   const discounted = (product.discountPercent ?? 0) > 0
   const favourite = isFavourite(product.id)
   const moreFromStore = productsByStore(product.storeId).filter((p) => p.id !== product.id)
@@ -45,7 +46,7 @@ export default function ProductDetail() {
   const similar = similarProducts(product)
 
   return (
-    <Layout header="none">
+    <Layout header="none" cartBar={false}>
       <div className="relative">
         <ProductImage
           product={product}
@@ -165,11 +166,9 @@ export default function ProductDetail() {
         {moreFromStore.length > 0 && (
           <section>
             <h2 className="section-title mb-3">More from this store</h2>
-            <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-              {moreFromStore.map((item) => (
-                <div key={item.id} className="w-44 shrink-0">
-                  <ProductCard product={item} description="none" />
-                </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+              {moreFromStore.slice(0, 4).map((item) => (
+                <ProductCard key={item.id} product={item} showStore={false} />
               ))}
             </div>
           </section>
@@ -178,32 +177,66 @@ export default function ProductDetail() {
         {similar.length > 0 && (
           <section>
             <h2 className="section-title mb-3">Similar products</h2>
-            <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-              {similar.map((item) => (
-                <div key={item.id} className="w-44 shrink-0">
-                  <ProductCard product={item} description="none" />
-                </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+              {similar.slice(0, 4).map((item) => (
+                <ProductCard key={item.id} product={item} />
               ))}
             </div>
           </section>
         )}
       </div>
 
-      {/* Add to cart and Consult, pinned above the fold on mobile. */}
+      {/* Add to cart and Consult, pinned above the fold on mobile. Once the
+          product is in the cart the button becomes a stepper plus a way through
+          to the cart — this page hides the app's cart bar, so the confirmation
+          that the add landed has to come from here. */}
       <div className="sticky bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur">
-        <div className="app-container flex gap-3 py-3">
-          <button
-            type="button"
-            onClick={() => addToCart(product.id)}
-            className="btn-primary flex-1"
-          >
-            <ShoppingCart size={18} />
-            Add to cart
-          </button>
+        <div className="app-container flex items-center gap-3 py-3">
+          {inCart > 0 ? (
+            <>
+              <div className="flex shrink-0 items-center rounded-lg border border-line bg-white">
+                <button
+                  type="button"
+                  className="p-2.5 text-muted hover:text-navy"
+                  onClick={() => setQuantity(product.id, inCart - 1)}
+                  aria-label={`Decrease quantity of ${product.name}`}
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="min-w-6 text-center text-sm font-bold text-ink">{inCart}</span>
+                <button
+                  type="button"
+                  className="p-2.5 text-muted hover:text-navy"
+                  onClick={() => addToCart(product.id)}
+                  aria-label={`Increase quantity of ${product.name}`}
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              <button type="button" onClick={openCart} className="btn-primary flex-1">
+                <ShoppingCart size={18} />
+                View cart
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => addToCart(product.id)}
+              className="btn-primary flex-1"
+            >
+              <ShoppingCart size={18} />
+              Add to cart
+            </button>
+          )}
+
           {store && (
-            <a href={telHref(store.phone)} className="btn-teal-outline flex-1">
+            <a
+              href={telHref(store.phone)}
+              className={`btn-teal-outline ${inCart > 0 ? 'shrink-0 px-3' : 'flex-1'}`}
+              aria-label={`Consult ${store.name}`}
+            >
               <Phone size={18} />
-              Consult
+              {inCart === 0 && 'Consult'}
             </a>
           )}
         </div>

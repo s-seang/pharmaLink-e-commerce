@@ -6,6 +6,10 @@ import { banners } from '../data/banners'
  * Promotional banners. Deliberately manual — it never scrolls on its own. The
  * bar underneath is a scroll position indicator, not a set of dots: its thumb
  * is one banner wide and slides as you swipe.
+ *
+ * The rail stays inside the page gutter rather than bleeding to the screen
+ * edge, so a banner lines up with the sections above and below it. One banner
+ * fills the column at a time; the rest are a swipe away.
  */
 export function BannerCarousel() {
   const railRef = useRef<HTMLDivElement>(null)
@@ -43,13 +47,13 @@ export function BannerCarousel() {
     <div>
       <div
         ref={railRef}
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1"
+        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1"
       >
         {banners.map((banner) => (
           <Link
             key={banner.id}
             to={banner.to}
-            className="relative w-[85%] shrink-0 snap-start overflow-hidden rounded-card sm:w-[55%] lg:w-[40%]"
+            className="relative w-full shrink-0 snap-start overflow-hidden rounded-card sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]"
             style={{ backgroundColor: banner.background, color: banner.foreground }}
           >
             {/* Decorative shapes, so the banner reads as artwork rather than a block. */}

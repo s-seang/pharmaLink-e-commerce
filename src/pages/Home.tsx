@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { BannerCarousel } from '../components/BannerCarousel'
-import { DiscountCarousel } from '../components/DiscountCarousel'
+import { DiscountGrid } from '../components/DiscountGrid'
 import { Layout } from '../components/Layout'
 import { SectionHeader } from '../components/SectionHeader'
 import { STORE_ROW_HEIGHT, StoreRow } from '../components/StoreRow'
@@ -41,7 +41,7 @@ export default function Home() {
             viewAllTo="/discounts"
             viewAllLabel="View all discounts"
           />
-          <DiscountCarousel max={12} />
+          <DiscountGrid max={6} />
         </section>
 
         <section>

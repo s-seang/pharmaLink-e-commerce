@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { finalPrice, getProduct } from '../data'
+import { finalPrice, getProduct, getStore, type Store } from '../data'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
 
 export interface User {
@@ -18,6 +18,18 @@ export interface User {
 export interface CartItem {
   productId: string
   quantity: number
+}
+
+/**
+ * An add-to-cart that was blocked because it came from a different pharmacy.
+ * Held here until the shopper either empties the cart for it or backs out.
+ */
+export interface CartConflict {
+  item: CartItem
+  /** The pharmacy the cart already belongs to. */
+  current: Store
+  /** The pharmacy the blocked product belongs to. */
+  next: Store
 }
 
 export type AuthTab = 'login' | 'signup'
@@ -35,6 +47,9 @@ interface AppState {
   cart: CartItem[]
   cartCount: number
   cartTotal: number
+  /** A cart holds one pharmacy's products at a time; null when empty. */
+  cartStoreId: string | null
+  cartStore: Store | undefined
   addToCart: (productId: string, quantity?: number) => void
   setQuantity: (productId: string, quantity: number) => void
   removeFromCart: (productId: string) => void
@@ -43,6 +58,12 @@ interface AppState {
   cartOpen: boolean
   openCart: () => void
   closeCart: () => void
+
+  /** Set when an add was blocked; resolve it with one of the two calls below. */
+  cartConflict: CartConflict | null
+  /** Drop the old pharmacy's items and start the cart over with the new one. */
+  confirmCartSwitch: () => void
+  cancelCartSwitch: () => void
 
   favourites: string[]
   toggleFavourite: (productId: string) => void
@@ -63,6 +84,16 @@ interface Persisted {
   favourites: string[]
 }
 
+/**
+ * Keep only the lines belonging to the first product's pharmacy. A cart saved
+ * before the one-pharmacy rule existed can hold several stores at once.
+ */
+function singleStore(cart: CartItem[]): CartItem[] {
+  const storeId = cart.length > 0 ? getProduct(cart[0].productId)?.storeId : undefined
+  if (!storeId) return cart.length > 0 ? [] : cart
+  return cart.filter((item) => getProduct(item.productId)?.storeId === storeId)
+}
+
 function readPersisted(): Persisted {
   const empty: Persisted = { user: null, cart: [], favourites: [] }
   try {
@@ -71,7 +102,7 @@ function readPersisted(): Persisted {
     const parsed = JSON.parse(raw) as Partial<Persisted>
     return {
       user: parsed.user ?? null,
-      cart: Array.isArray(parsed.cart) ? parsed.cart : [],
+      cart: singleStore(Array.isArray(parsed.cart) ? parsed.cart : []),
       favourites: Array.isArray(parsed.favourites) ? parsed.favourites : [],
     }
   } catch {
@@ -97,6 +128,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [favourites, setFavourites] = useState<string[]>(initial.favourites)
   const [authModal, setAuthModal] = useState<AuthTab | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
+  const [cartConflict, setCartConflict] = useState<CartConflict | null>(null)
   const [coords, setCoords] = useState<Coords>(PHNOM_PENH)
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle')
 
@@ -115,20 +147,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => setUser(null), [])
 
-  const addToCart = useCallback((productId: string, quantity = 1) => {
-    setCart((current) => {
-      const existing = current.find((item) => item.productId === productId)
-      if (existing) {
-        return current.map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item,
-        )
+  /** The pharmacy the cart belongs to — every line in it comes from this one store. */
+  const cartStoreId = cart.length > 0 ? getProduct(cart[0].productId)?.storeId ?? null : null
+
+  const addToCart = useCallback(
+    (productId: string, quantity = 1) => {
+      const product = getProduct(productId)
+      if (!product) return
+
+      // One pharmacy per order: a product from anywhere else has to wait until
+      // the shopper agrees to empty the cart for it.
+      if (cartStoreId && product.storeId !== cartStoreId) {
+        const current = getStore(cartStoreId)
+        const next = getStore(product.storeId)
+        if (current && next) {
+          setCartConflict({ item: { productId, quantity }, current, next })
+          return
+        }
       }
-      return [...current, { productId, quantity }]
-    })
-    setCartOpen(true)
-  }, [])
+
+      setCart((currentCart) => {
+        const existing = currentCart.find((item) => item.productId === productId)
+        if (existing) {
+          return currentCart.map((item) =>
+            item.productId === productId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item,
+          )
+        }
+        return [...currentCart, { productId, quantity }]
+      })
+    },
+    [cartStoreId],
+  )
+
+  /** Empty the cart and start it again with the product that was blocked. */
+  const confirmCartSwitch = useCallback(() => {
+    if (!cartConflict) return
+    setCart([cartConflict.item])
+    setCartConflict(null)
+  }, [cartConflict])
+
+  const cancelCartSwitch = useCallback(() => setCartConflict(null), [])
 
   const setQuantity = useCallback((productId: string, quantity: number) => {
     setCart((current) =>
@@ -186,6 +246,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cart,
     cartCount,
     cartTotal,
+    cartStoreId,
+    cartStore: cartStoreId ? getStore(cartStoreId) : undefined,
     addToCart,
     setQuantity,
     removeFromCart,
@@ -193,6 +255,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cartOpen,
     openCart: () => setCartOpen(true),
     closeCart: () => setCartOpen(false),
+    cartConflict,
+    confirmCartSwitch,
+    cancelCartSwitch,
     favourites,
     toggleFavourite,
     isFavourite: (productId: string) => favourites.includes(productId),

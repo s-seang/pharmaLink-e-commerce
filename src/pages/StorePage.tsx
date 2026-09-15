@@ -12,11 +12,10 @@ import {
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { StoreChatSheet } from '../components/StoreChatSheet'
-import { StoreProductCard } from '../components/StoreProductCard'
+import { ProductCard } from '../components/ProductCard'
 import { StoreFabs } from '../components/StoreFabs'
 import { Layout } from '../components/Layout'
 import { OpenBadge } from '../components/OpenBadge'
-import { StoreCartBar } from '../components/StoreCartBar'
 import { StarRating } from '../components/StarRating'
 import { StoreLogo } from '../components/StoreLogo'
 import { CATEGORIES, getStore, productsByStore, type Category } from '../data'
@@ -104,7 +103,7 @@ export default function StorePage() {
         </div>
       </div>
 
-      <div className="app-container space-y-7 py-5 pb-40">
+      <div className="app-container space-y-7 py-5">
         {hasAbout && (
           <section>
             <h2 className="section-title mb-3">About this pharmacy</h2>
@@ -187,7 +186,7 @@ export default function StorePage() {
           ) : (
             <div className="grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
               {visible.map((product) => (
-                <StoreProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} action="none" />
               ))}
             </div>
           )}
@@ -202,8 +201,6 @@ export default function StorePage() {
       />
 
       <StoreChatSheet store={store} open={chatOpen} onClose={() => setChatOpen(false)} />
-
-      <StoreCartBar store={store} />
     </Layout>
   )
 }

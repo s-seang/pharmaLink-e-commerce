@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 
 /** Bottom-anchored things a floating control has to stay above. */
-const OBSTACLES = ['[data-store-cart-bar]', '[data-app-footer]']
+const OBSTACLES = ['[data-cart-bar]', '[data-app-footer]']
 
 /**
  * How far a viewport-fixed control must lift to clear whatever is anchored to
  * the bottom of the page. Returns 0 until an obstacle intrudes, then grows with
  * the overlap so the control rests just above it instead of floating over it.
+ *
+ * Only for genuinely fixed controls. Anything that can be laid out in the flow
+ * should use `position: sticky` instead, which the compositor keeps in place
+ * without a scroll handler — see `CartBar`.
  */
 export function useFooterClearance(gap = 16): number {
   const [lift, setLift] = useState(0)

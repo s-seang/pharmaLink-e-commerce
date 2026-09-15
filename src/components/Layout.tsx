@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
+import { useApp } from '../context/AppContext'
 import { AuthModal } from './AuthModal'
+import { CartBar } from './CartBar'
 import { CartDrawer } from './CartDrawer'
 import { CartMenuButton } from './CartMenuButton'
+import { CartStoreDialog } from './CartStoreDialog'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -14,18 +17,31 @@ export function Layout({
   children,
   header = 'default',
   floatingCart = true,
+  cartBar = true,
 }: {
   children: ReactNode
   header?: 'default' | 'none'
-  /** Store pages set this false — they carry their own bottom cart bar. */
+  /** Store pages set this false — the bottom cart bar already names the store. */
   floatingCart?: boolean
+  /** Product detail sets this false; its own sticky action bar owns the bottom. */
+  cartBar?: boolean
 }) {
+  const { cart } = useApp()
+  const showCartBar = cartBar && cart.length > 0
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {header === 'default' ? <Header /> : floatingCart && <CartMenuButton />}
-      <main className="flex-1">{children}</main>
+      {/* The cart bar sits inside main so it can stick to the bottom of the
+          screen while the body is in view and settle onto the footer at the
+          end of it. */}
+      <main className="flex flex-1 flex-col">
+        <div className="flex-1">{children}</div>
+        {showCartBar && <CartBar />}
+      </main>
       <Footer />
       <CartDrawer />
+      <CartStoreDialog />
       <AuthModal />
     </div>
   )
