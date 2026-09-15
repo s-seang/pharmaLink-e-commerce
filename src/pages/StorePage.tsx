@@ -67,7 +67,7 @@ export default function StorePage() {
       : storeProducts.filter((product) => product.category === category).length
 
   return (
-    <Layout header="none" floatingCart={false}>
+    <Layout header="none" floatingCart={false} cartBar>
       <div data-store-band className="bg-navy-deep text-white">
         <div className="app-container py-4">
           <button

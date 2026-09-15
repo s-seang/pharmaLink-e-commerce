@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { finalPrice, getProduct, getStore, type Store } from '../data'
+import { finalPrice, getProduct, getStore, type Order, type Store } from '../data'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
 
 export interface User {
@@ -60,6 +60,11 @@ interface AppState {
   closeCart: () => void
 
   /** Set when an add was blocked; resolve it with one of the two calls below. */
+  /** Orders already placed, newest first. Empty until the first checkout. */
+  orders: Order[]
+  /** Record the cart as an order, then empty it. Total includes delivery. */
+  placeOrder: (total: number) => Order | undefined
+
   cartConflict: CartConflict | null
   /** Drop the old pharmacy's items and start the cart over with the new one. */
   confirmCartSwitch: () => void
@@ -82,6 +87,7 @@ interface Persisted {
   user: User | null
   cart: CartItem[]
   favourites: string[]
+  orders: Order[]
 }
 
 /**
@@ -95,7 +101,7 @@ function singleStore(cart: CartItem[]): CartItem[] {
 }
 
 function readPersisted(): Persisted {
-  const empty: Persisted = { user: null, cart: [], favourites: [] }
+  const empty: Persisted = { user: null, cart: [], favourites: [], orders: [] }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return empty
@@ -104,6 +110,7 @@ function readPersisted(): Persisted {
       user: parsed.user ?? null,
       cart: singleStore(Array.isArray(parsed.cart) ? parsed.cart : []),
       favourites: Array.isArray(parsed.favourites) ? parsed.favourites : [],
+      orders: Array.isArray(parsed.orders) ? parsed.orders : [],
     }
   } catch {
     return empty
@@ -126,6 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(initial.user)
   const [cart, setCart] = useState<CartItem[]>(initial.cart)
   const [favourites, setFavourites] = useState<string[]>(initial.favourites)
+  const [orders, setOrders] = useState<Order[]>(initial.orders)
   const [authModal, setAuthModal] = useState<AuthTab | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [cartConflict, setCartConflict] = useState<CartConflict | null>(null)
@@ -134,11 +142,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, cart, favourites }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, cart, favourites, orders }))
     } catch {
       // Storage can be unavailable in private mode — state stays in memory only.
     }
-  }, [user, cart, favourites])
+  }, [user, cart, favourites, orders])
 
   const login = useCallback((contact: string, name?: string) => {
     setUser({ name: name?.trim() || nameFromContact(contact), contact })
@@ -189,6 +197,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [cartConflict])
 
   const cancelCartSwitch = useCallback(() => setCartConflict(null), [])
+
+  /**
+   * Checkout. There is no payment step and no backend — this records what was
+   * bought so the shopper can find the shop again under "Order again", then
+   * empties the cart.
+   */
+  const placeOrder = useCallback(
+    (total: number) => {
+      if (cart.length === 0 || !cartStoreId) return undefined
+      const order: Order = {
+        id: `o-${Date.now()}`,
+        storeId: cartStoreId,
+        lines: cart.map((item) => ({ ...item })),
+        total,
+        placedOn: new Date().toISOString(),
+      }
+      setOrders((current) => [order, ...current])
+      setCart([])
+      setCartOpen(false)
+      return order
+    },
+    [cart, cartStoreId],
+  )
 
   const setQuantity = useCallback((productId: string, quantity: number) => {
     setCart((current) =>
@@ -255,6 +286,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cartOpen,
     openCart: () => setCartOpen(true),
     closeCart: () => setCartOpen(false),
+    orders,
+    placeOrder,
     cartConflict,
     confirmCartSwitch,
     cancelCartSwitch,

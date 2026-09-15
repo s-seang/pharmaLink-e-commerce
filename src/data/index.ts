@@ -1,6 +1,6 @@
 import { products } from './products'
 import { stores } from './stores'
-import type { Category, Product, Store, StoreType } from './types'
+import type { Category, Order, Product, Store, StoreType } from './types'
 
 export { products, stores }
 export * from './types'
@@ -89,4 +89,62 @@ export function otherStoresFor(product: Product): Product[] {
   return products
     .filter((p) => p.id !== product.id && p.name === product.name)
     .sort((a, b) => finalPrice(a) - finalPrice(b))
+}
+
+/**
+ * Shops ordered from before, most recent first and each listed once, with the
+ * date they were last ordered from. Empty until the shopper actually checks
+ * out — nothing seeds it.
+ */
+export function orderedStores(orders: Order[]): { store: Store; lastOrderedOn: string }[] {
+  const seen = new Set<string>()
+  const result: { store: Store; lastOrderedOn: string }[] = []
+  for (const order of [...orders].sort((a, b) => b.placedOn.localeCompare(a.placedOn))) {
+    if (seen.has(order.storeId)) continue
+    const store = getStore(order.storeId)
+    if (!store) continue
+    seen.add(order.storeId)
+    result.push({ store, lastOrderedOn: order.placedOn })
+  }
+  return result
+}
+
+/** The deepest discount a shop is running, for its "up to X% off" badge. */
+export function bestDiscount(storeId: string): number {
+  return productsByStore(storeId).reduce((best, p) => Math.max(best, p.discountPercent ?? 0), 0)
+}
+
+/**
+ * What to put in front of someone revisiting a shop: whatever is on offer
+ * first, biggest saving leading, then the rest of the shelf. Not what they
+ * bought last time — they are browsing the shop again, not repeating a box of
+ * paracetamol.
+ */
+export function topPicks(storeId: string, limit = 8): Product[] {
+  return productsByStore(storeId)
+    .slice()
+    .sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0) || a.price - b.price)
+    .slice(0, limit)
+}
+
+/** Whether a shop stocks anything in a product category. */
+export function stocksCategory(store: Store, category: Category): boolean {
+  return products.some((p) => p.storeId === store.id && p.category === category)
+}
+
+/** The category a shop stocks most of — what kind of shop it reads as. */
+export function leadingCategory(store: Store): Category | undefined {
+  const counts = new Map<Category, number>()
+  for (const product of productsByStore(store.id)) {
+    counts.set(product.category, (counts.get(product.category) ?? 0) + 1)
+  }
+  let leader: Category | undefined
+  let best = 0
+  for (const [category, count] of counts) {
+    if (count > best) {
+      best = count
+      leader = category
+    }
+  }
+  return leader
 }

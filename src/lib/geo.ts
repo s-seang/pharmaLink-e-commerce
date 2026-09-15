@@ -38,3 +38,21 @@ export function directionsUrl(lat: number, lng: number, label?: string): string 
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, '')}`
 }
+
+/** Riding speed used to turn a distance into a delivery estimate, km/h. */
+const RIDE_SPEED_KMH = 18
+
+/**
+ * Minutes until an order lands: the shop's own prep time plus the ride. Keeping
+ * prep in the number is what makes "Fast delivery" different from "Distance" —
+ * a busy shop next door can be slower than a quick one a kilometre away.
+ */
+export function deliveryMinutes(prepMinutes: number, km: number): number {
+  return Math.round(prepMinutes + (km / RIDE_SPEED_KMH) * 60)
+}
+
+/** "20–30 min" — a range, because an exact minute would be a promise. */
+export function formatEta(minutes: number): string {
+  const low = Math.max(5, Math.round(minutes / 5) * 5)
+  return `${low}\u2013${low + 10} min`
+}

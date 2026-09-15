@@ -4,6 +4,7 @@ import { AppProvider } from './context/AppContext'
 import Account from './pages/Account'
 import Discounts from './pages/Discounts'
 import Home from './pages/Home'
+import Orders from './pages/Orders'
 import Placeholder from './pages/Placeholder'
 import ProductDetail from './pages/ProductDetail'
 import SearchPage from './pages/Search'
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/stores" element={<Stores />} />
           <Route path="/discounts" element={<Discounts />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/orders" element={<Orders />} />
 
           {/* Footer destinations, stubbed until the copy exists. */}
           <Route path="/about" element={<Placeholder title="About us" />} />

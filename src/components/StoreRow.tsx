@@ -5,15 +5,24 @@ import { formatDistance } from '../lib/geo'
 import { OpenBadge } from './OpenBadge'
 import { StarRating } from './StarRating'
 
-/** Rows are a fixed height so a scroll box can show an exact number of them. */
-export const STORE_ROW_HEIGHT = 100
+/** Fixed height, so rows line up whether stacked or laid out in a rail. */
+const STORE_ROW_HEIGHT = 100
 
-export function StoreRow({ store, distanceKm }: { store: Store; distanceKm: number }) {
+export function StoreRow({
+  store,
+  distanceKm,
+  className = '',
+}: {
+  store: Store
+  distanceKm: number
+  /** Sizing from the caller — a sideways rail needs a fixed width per row. */
+  className?: string
+}) {
   return (
     <Link
       to={`/store/${store.id}`}
       style={{ height: STORE_ROW_HEIGHT }}
-      className="card flex items-center gap-3 p-3 transition-colors hover:border-navy"
+      className={`card flex items-center gap-3 p-3 transition-colors hover:border-navy ${className}`}
     >
       <StoreLogoMark store={store} />
 

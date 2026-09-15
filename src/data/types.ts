@@ -38,6 +38,15 @@ export interface Store {
   /** Ratings belong to stores, not products. */
   rating: number
   reviewCount: number
+  /**
+   * Minutes the shop needs to get an order ready, before any travel. Added to
+   * the ride time to give a delivery estimate, and what separates the "Fast
+   * delivery" sort from plain "Distance" — the nearest shop is not always the
+   * quickest one.
+   */
+  prepMinutes: number
+  /** Running a free-delivery voucher. Surfaced by the "Offers" filter. */
+  freeDelivery?: boolean
   /** Consultation line — each store supplies its own. */
   phone: string
   address: string
@@ -63,4 +72,25 @@ export interface Product {
   discountPercent?: number
   /** Seed for the generated placeholder artwork. */
   imageSeed: number
+}
+
+/** One line of a placed order — the same shape as a cart line. */
+export interface OrderLine {
+  productId: string
+  quantity: number
+}
+
+/**
+ * An order the shopper has placed. Written by checkout and kept in
+ * `localStorage`; there is no backend to hold it. One store per order, by the
+ * same one-pharmacy rule the cart follows.
+ */
+export interface Order {
+  id: string
+  storeId: string
+  lines: OrderLine[]
+  /** What was actually paid, delivery included. */
+  total: number
+  /** ISO timestamp, used to order the list and to show "last ordered". */
+  placedOn: string
 }

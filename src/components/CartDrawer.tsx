@@ -1,5 +1,5 @@
 import { ArrowRight, ChevronRight, CreditCard, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { finalPrice, formatPrice, getProduct } from '../data'
 import { ProductImage } from './ProductImage'
@@ -10,8 +10,18 @@ const DELIVERY_FEE = 1.5
 const FREE_DELIVERY_OVER = 20
 
 export function CartDrawer() {
-  const { cartOpen, closeCart, cart, cartTotal, cartStore, setQuantity, removeFromCart, clearCart } =
-    useApp()
+  const {
+    cartOpen,
+    closeCart,
+    cart,
+    cartTotal,
+    cartStore,
+    setQuantity,
+    removeFromCart,
+    clearCart,
+    placeOrder,
+  } = useApp()
+  const navigate = useNavigate()
 
   if (!cartOpen) return null
 
@@ -197,7 +207,16 @@ export function CartDrawer() {
             </div>
 
             <div className="border-t border-line bg-white p-4">
-              <button type="button" className="btn-primary w-full rounded-full py-3">
+              {/* No payment step exists yet: this records the order so the shop
+                  turns up under "Order again", empties the cart, and shows the
+                  shopper where it went. */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (placeOrder(total)) navigate('/orders')
+                }}
+                className="btn-primary w-full rounded-full py-3"
+              >
                 Proceed to payment — {formatPrice(total)}
                 <ArrowRight size={18} />
               </button>

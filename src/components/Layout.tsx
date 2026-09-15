@@ -17,13 +17,17 @@ export function Layout({
   children,
   header = 'default',
   floatingCart = true,
-  cartBar = true,
+  cartBar = false,
 }: {
   children: ReactNode
   header?: 'default' | 'none'
   /** Store pages set this false — the bottom cart bar already names the store. */
   floatingCart?: boolean
-  /** Product detail sets this false; its own sticky action bar owns the bottom. */
+  /**
+   * Only a pharmacy's own page opts in. Everywhere else the cart is reached
+   * through the icon in the header, so the bar does not follow the shopper
+   * around the app — it belongs to the shop they are standing in.
+   */
   cartBar?: boolean
 }) {
   const { cart } = useApp()

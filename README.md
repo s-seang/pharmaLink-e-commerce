@@ -15,13 +15,14 @@ npm run lint
 
 | Route | Page | Notes |
 | --- | --- | --- |
-| `/` | Home | Promo banners, discount grid, nearest pharmacies |
-| `/search` | Product results | `?category=` and `?q=`; compact search pill instead of the logo row |
+| `/` | Home | Banners, discounts, order again (once you have ordered), nearest box, sortable browse |
+| `/search` | Product results | `?category=` and `?q=`; compact search pill, filter row below |
 | `/product/:id` | Product detail | Store card, add to cart, consult, related rails |
 | `/store/:id` | Pharmacy | Navy band, about section, product grid, floating Consult button |
 | `/stores` | All pharmacies | `?type=`; searchable, sortable by distance or rating |
 | `/discounts` | All discounts | Filter by category, sort by discount / price / rating |
 | `/account` | Account | Stub — "Coming soon" |
+| `/orders` | Your previous orders | Every pharmacy ordered from; own top bar, no header |
 
 Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared placeholder.
 
@@ -30,8 +31,10 @@ Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared place
 - `src/data/` — types plus mock stores and products, and the selectors over them
 - `src/context/AppContext.tsx` — auth, cart, favourites, geolocation; persisted to `localStorage`
 - `src/hooks/` — `useHideOnScroll` (header), `useBackdropTone` (contrast), `useFooterClearance`, `useIsTouch`
-- `src/components/CartBar.tsx` — the app-wide bottom cart bar; `CartStoreDialog.tsx` — the
-  one-pharmacy prompt
+- `src/components/CartBar.tsx` — the bottom cart bar shown on pharmacy pages;
+  `CartStoreDialog.tsx` — the one-pharmacy prompt; `FilterBar.tsx` — the filter pills used by
+  home and search; `OrderAgainRow.tsx` — a past shop and its rail;
+  `StoreBannerCard.tsx` — the full-width shop card on `/orders`
 - `src/components/` — shell (header, footer, layout, modals) and shared cards
 - `src/lib/geo.ts` — haversine distance, Phnom Penh fallback, `tel:` and map links
 
@@ -51,6 +54,45 @@ separate category would have made those products unreachable by chip.
 
 ## Conventions worth knowing
 
+- **The cart bar belongs to the shop you are standing in.** `Layout`'s `cartBar` defaults
+  to false and only `/store/:id` opts in. Everywhere else the cart is reached through the
+  icon in the header, so the bar does not trail the shopper around the app. Store pages
+  are the mirror image: they pass `floatingCart={false}`, so the bar is the only cart
+  control there rather than a second one.
+- **Search filters are pills, and their sheets are not popovers.** `FilterSelect` opens
+  its choices in a sheet from the bottom of the screen because the filter row scrolls
+  sideways, and anything absolutely positioned inside a scrolling row is clipped by it.
+  A pill carries its chosen value once it is off its default, so the row reads as the
+  current state of the search. "Open now" reads `store.hours` through `isOpenNow`, and
+  "Ratings 4.0+" ranks by the selling store, like every other rating in the app.
+- **Delivery estimates are prep time plus the ride.** `Store.prepMinutes` is how long the
+  shop needs before anything moves; `deliveryMinutes()` in `src/lib/geo.ts` adds the ride at
+  `RIDE_SPEED_KMH`. Keeping prep in the number is what makes home's "Fast delivery" sort
+  different from "Distance" — a slow shop next door loses to a quick one a kilometre away.
+  Estimates always render as a range (`formatEta`), because an exact minute would be a
+  promise the app cannot keep.
+- **Home's Category filter reads two different things.** "Pharmacy" and "Medicine" match
+  `Store.type`; the rest match what a shop actually stocks. "Skincare Store" is the narrower
+  of the two cosmetics filters — a shop whose *biggest* shelf is cosmetics (`leadingCategory`)
+  rather than any shop carrying some — so it is a proper subset of "Cosmetic" (4 shops of 6
+  today) rather than a second name for the same list.
+- **"Order again" does not re-offer what was bought.** `topPicks()` leads with whatever is
+  on offer at that shop now. Someone returning to a pharmacy is returning to the shop, not
+  repeating a box of paracetamol.
+- **Orders are real, and nothing seeds them.** `orders` lives in `AppContext` beside the
+  cart and persists to `localStorage`; `placeOrder()` writes one. Until the first checkout
+  the list is empty, so the home page's "Order again" section is absent rather than empty,
+  and `/orders` shows its own empty state. There is no mock order history — seeding one
+  would have made the section lie about what the shopper has done.
+- **Home's two shop lists answer different questions.** "Nearest to you" is a sideways rail
+  sorted by distance that takes no filters — it answers "what is closest". The "Explore
+  shops" section below it is the one the filter pills drive, stacked vertically, where
+  the shopper decides what "best" means. Keeping the filters off the rail is what stops its
+  heading from contradicting a sort like "Rating (high to low)". Both use the same
+  `StoreRow`; the rail just gives each row a fixed width.
+- **Store artwork is drawn, like product artwork.** `StoreBannerCard` paints the shop's own
+  `logoColor` and leads with its deepest discount (`bestDiscount`). Stores have no photos,
+  and the app has no external image dependency to lean on.
 - **A cart holds one pharmacy at a time.** Each pharmacy packs and delivers its own order,
   so there is no way to check out across two of them. `addToCart` compares the product's
   `storeId` against `cartStoreId` (the store of the first line in the cart) and, when they
@@ -101,10 +143,15 @@ separate category would have made those products unreachable by chip.
 - Prescription upload for "Medical prescription by doctor"
 - Khmer / English language toggle and USD / KHR currency display
 - Review submission — ratings are display-only
+- Home's "Most purchased" sort ranks by `reviewCount` — there are no cross-shopper order
+  counts to rank by without a backend.
 - Somewhere to see favourites. The heart on product cards and product detail writes to
   `favourites` in `AppContext` and persists, but no screen lists what is in it yet —
   `/account` is the obvious home for it.
-- Checkout: the cart's "Proceed to payment" button is inert, and the payment method row
-  is a fixed "Pay on delivery" placeholder. The order summary above it is real — subtotal,
-  the discount the sale prices add up to, and a $1.50 delivery fee waived over $20.
+- Payment. "Proceed to payment" records the order, empties the cart and lands on
+  `/orders` — but nothing is charged, and the payment method row is a fixed "Pay on
+  delivery" placeholder. The order summary is real: subtotal, the discount the sale prices
+  add up to, and a $1.50 delivery fee waived over $20.
+- Order detail. `/orders` lists the pharmacies ordered from, not the orders themselves;
+  `Order.lines` and `Order.total` are recorded but nothing reads them yet.
 # pharmaLink-e-commerce

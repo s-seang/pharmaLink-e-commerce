@@ -1,31 +1,117 @@
 import { Loader2 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BannerCarousel } from '../components/BannerCarousel'
 import { DiscountGrid } from '../components/DiscountGrid'
+import { FilterSelect, type FilterOption } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
+import { OrderAgainRow } from '../components/OrderAgainRow'
 import { SectionHeader } from '../components/SectionHeader'
-import { STORE_ROW_HEIGHT, StoreRow } from '../components/StoreRow'
+import { StoreRow } from '../components/StoreRow'
 import { useApp } from '../context/AppContext'
-import { stores } from '../data'
-import { distanceKm } from '../lib/geo'
+import { leadingCategory, orderedStores, stocksCategory, stores, type Store } from '../data'
+import { deliveryMinutes, distanceKm } from '../lib/geo'
 
-/** How many pharmacies the "Nearest to you" box shows before it scrolls. */
-const VISIBLE_ROWS = 5
+type SortKey = 'fast' | 'distance' | 'rating' | 'popular'
+type OfferKey = 'any' | 'free-delivery'
+type ShopKey =
+  | 'All'
+  | 'Skincare Store'
+  | 'Medicine'
+  | 'Supplement'
+  | 'Cosmetic'
+  | 'Pharmacy'
+  | 'Medical Equipment'
+
+const SORT_OPTIONS: FilterOption<SortKey>[] = [
+  { value: 'fast', label: 'Fast delivery' },
+  { value: 'distance', label: 'Distance' },
+  { value: 'rating', label: 'Rating (high to low)' },
+  { value: 'popular', label: 'Most purchased' },
+]
+
+const OFFER_OPTIONS: FilterOption<OfferKey>[] = [
+  { value: 'any', label: 'Any offer' },
+  { value: 'free-delivery', label: 'Free delivery voucher' },
+]
+
+const SHOP_OPTIONS: FilterOption<ShopKey>[] = [
+  { value: 'All', label: 'All pharmacies' },
+  { value: 'Skincare Store', label: 'Skincare Store' },
+  { value: 'Medicine', label: 'Medicine' },
+  { value: 'Supplement', label: 'Supplement' },
+  { value: 'Cosmetic', label: 'Cosmetic' },
+  { value: 'Pharmacy', label: 'Pharmacy' },
+  { value: 'Medical Equipment', label: 'Medical Equipment' },
+]
+
+/**
+ * Two of these read the shop's type, the rest read what it actually stocks.
+ * "Skincare Store" is the narrower of the two cosmetics filters: a shop whose
+ * biggest shelf is cosmetics, rather than any shop that happens to carry some.
+ */
+function matchesShopFilter(store: Store, filter: ShopKey): boolean {
+  switch (filter) {
+    case 'All':
+      return true
+    case 'Pharmacy':
+    case 'Medicine':
+      return store.type === filter
+    case 'Skincare Store':
+      return leadingCategory(store) === 'Cosmetic'
+    default:
+      return stocksCategory(store, filter)
+  }
+}
 
 export default function Home() {
-  const { coords, locationStatus, requestLocation } = useApp()
+  const { coords, locationStatus, requestLocation, orders } = useApp()
+
+  const [sort, setSort] = useState<SortKey>('fast')
+  const [offer, setOffer] = useState<OfferKey>('any')
+  const [shop, setShop] = useState<ShopKey>('All')
 
   useEffect(() => {
     if (locationStatus === 'idle') requestLocation()
   }, [locationStatus, requestLocation])
 
-  const nearest = useMemo(
-    () =>
-      stores
-        .map((store) => ({ store, km: distanceKm(coords, store) }))
-        .sort((a, b) => a.km - b.km),
+  const withDistance = useMemo(
+    () => stores.map((store) => ({ store, km: distanceKm(coords, store) })),
     [coords],
   )
+
+  /** Purely by distance — this box answers one question and takes no filters. */
+  const nearest = useMemo(() => [...withDistance].sort((a, b) => a.km - b.km), [withDistance])
+
+  const ordered = useMemo(() => {
+    const km = new Map(withDistance.map(({ store, km }) => [store.id, km]))
+    return orderedStores(orders).map(({ store }) => ({ store, km: km.get(store.id) ?? 0 }))
+  }, [withDistance, orders])
+
+  /** The browse list, which is what the filter row below it drives. */
+  const browse = useMemo(() => {
+    const filtered = withDistance.filter(
+      ({ store }) =>
+        matchesShopFilter(store, shop) && (offer === 'any' || store.freeDelivery === true),
+    )
+
+    return filtered.sort((a, b) => {
+      if (sort === 'distance') return a.km - b.km
+      if (sort === 'rating') return b.store.rating - a.store.rating
+      // No order counts without a backend, so reviews stand in for how busy a shop is.
+      if (sort === 'popular') return b.store.reviewCount - a.store.reviewCount
+      return (
+        deliveryMinutes(a.store.prepMinutes, a.km) - deliveryMinutes(b.store.prepMinutes, b.km)
+      )
+    })
+  }, [withDistance, shop, offer, sort])
+
+  const filtersActive = sort !== 'fast' || offer !== 'any' || shop !== 'All'
+
+  const clearFilters = () => {
+    setSort('fast')
+    setOffer('any')
+    setShop('All')
+  }
 
   return (
     <Layout>
@@ -43,6 +129,22 @@ export default function Home() {
           />
           <DiscountGrid max={6} />
         </section>
+
+        {ordered.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Order again"
+              subtitle="Pharmacies you have ordered from before"
+              viewAllTo="/orders"
+              viewAllLabel="View all past orders"
+            />
+            <div className="space-y-7">
+              {ordered.map(({ store, km }) => (
+                <OrderAgainRow key={store.id} store={store} km={km} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section>
           <SectionHeader
@@ -62,16 +164,17 @@ export default function Home() {
               Finding pharmacies near you…
             </p>
           ) : (
-            /* A fixed box that shows five pharmacies at a time and scrolls for the rest. */
-            <div
-              className="overflow-y-auto rounded-card border border-line bg-surface p-2"
-              style={{ maxHeight: VISIBLE_ROWS * STORE_ROW_HEIGHT + (VISIBLE_ROWS - 1) * 8 + 16 }}
-            >
-              <div className="space-y-2">
-                {nearest.map(({ store, km }) => (
-                  <StoreRow key={store.id} store={store} distanceKm={km} />
-                ))}
-              </div>
+            /* The same rows as the browse list below, laid out sideways —
+               closest first, the rest a swipe away. */
+            <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+              {nearest.map(({ store, km }) => (
+                <StoreRow
+                  key={store.id}
+                  store={store}
+                  distanceKm={km}
+                  className="w-72 shrink-0"
+                />
+              ))}
             </div>
           )}
 
@@ -83,6 +186,47 @@ export default function Home() {
             >
               Use my location instead
             </button>
+          )}
+        </section>
+
+        {/* Separate from the box above: that one answers "what is closest",
+            this one lets the shopper decide what "best" means. */}
+        <section>
+          <SectionHeader
+            title="Explore shops"
+            subtitle="Sort and filter every pharmacy we deliver from"
+            viewAllTo="/stores"
+            viewAllLabel="View all pharmacies"
+          />
+
+          <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
+            <FilterSelect label="Sort" value={sort} options={SORT_OPTIONS} onChange={setSort} />
+            <FilterSelect label="Offers" value={offer} options={OFFER_OPTIONS} onChange={setOffer} />
+            <FilterSelect label="Category" value={shop} options={SHOP_OPTIONS} onChange={setShop} />
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="chip shrink-0 border-transparent text-muted hover:text-sale"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {browse.length === 0 ? (
+            <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
+              <p className="text-sm font-semibold text-ink">No pharmacies match these filters</p>
+              <button type="button" onClick={clearFilters} className="btn-primary">
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {browse.map(({ store, km }) => (
+                <StoreRow key={store.id} store={store} distanceKm={km} />
+              ))}
+            </div>
           )}
         </section>
       </div>

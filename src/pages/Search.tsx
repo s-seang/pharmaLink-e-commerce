@@ -1,6 +1,7 @@
 import { ArrowLeft, Search as SearchIcon, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { FilterChip, FilterSelect, type FilterOption } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
@@ -9,6 +10,7 @@ import {
   PRODUCT_FILTERS,
   finalPrice,
   getStore,
+  isOpenNow,
   products,
   searchProducts,
   storeRating,
@@ -19,15 +21,21 @@ import { distanceKm } from '../lib/geo'
 
 type SortKey = 'All' | 'Rating' | 'Price' | 'Nearby'
 
-const SORTS: SortKey[] = ['All', 'Rating', 'Price', 'Nearby']
+/** Ratings belong to stores, so the rating sort says whose rating it is. */
+const SORT_OPTIONS: FilterOption<SortKey>[] = [
+  { value: 'All', label: 'Recommended' },
+  { value: 'Rating', label: 'Store rating' },
+  { value: 'Price', label: 'Price: low to high' },
+  { value: 'Nearby', label: 'Nearest to me' },
+]
 
-/** Ratings belong to stores, so the rating filter says whose rating it is. */
-const SORT_LABELS: Record<SortKey, string> = {
-  All: 'All',
-  Rating: 'Store rating',
-  Price: 'Price',
-  Nearby: 'Nearby',
-}
+const CATEGORY_OPTIONS: FilterOption<Category | 'All'>[] = [
+  { value: 'All', label: 'All products' },
+  ...CATEGORIES.map((category) => ({ value: category, label: category })),
+]
+
+/** The store rating a product has to clear for the "Ratings 4.0+" chip. */
+const GOOD_RATING = 4
 
 function isCategory(value: string | null): value is Category {
   return !!value && (CATEGORIES as string[]).includes(value)
@@ -43,6 +51,9 @@ export default function SearchPage() {
   const query = params.get('q') ?? ''
 
   const [sort, setSort] = useState<SortKey>('All')
+  const [discountedOnly, setDiscountedOnly] = useState(false)
+  const [wellRated, setWellRated] = useState(false)
+  const [openNow, setOpenNow] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState(query)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -71,7 +82,16 @@ export default function SearchPage() {
 
     // Word-by-word match, so "bio derma sleeping mask" finds the Bioderma
     // sleeping mask at every store that lists it.
-    const filtered = searchProducts(query, inCategory)
+    let filtered = searchProducts(query, inCategory)
+
+    if (discountedOnly) filtered = filtered.filter((p) => (p.discountPercent ?? 0) > 0)
+    if (wellRated) filtered = filtered.filter((p) => storeRating(p) >= GOOD_RATING)
+    if (openNow) {
+      filtered = filtered.filter((p) => {
+        const store = getStore(p.storeId)
+        return store ? isOpenNow(store) : false
+      })
+    }
 
     const storeDistance = (product: Product) => {
       const store = getStore(product.storeId)
@@ -84,9 +104,20 @@ export default function SearchPage() {
     if (sort === 'Price') sorted.sort((a, b) => finalPrice(a) - finalPrice(b))
     if (sort === 'Nearby') sorted.sort((a, b) => storeDistance(a) - storeDistance(b))
     return sorted
-  }, [category, query, sort, coords])
+  }, [category, query, sort, coords, discountedOnly, wellRated, openNow])
 
   const heading = category ?? (query ? `“${query}”` : 'All products')
+
+  const filtersActive =
+    sort !== 'All' || category !== null || discountedOnly || wellRated || openNow
+
+  const clearFilters = () => {
+    setSort('All')
+    setDiscountedOnly(false)
+    setWellRated(false)
+    setOpenNow(false)
+    updateParams({ category: null })
+  }
 
   return (
     <Layout header="none">
@@ -165,17 +196,33 @@ export default function SearchPage() {
         </div>
 
         <div className="app-container no-scrollbar flex gap-2 overflow-x-auto pb-2.5">
-          {SORTS.map((option) => (
+          <FilterSelect label="Sort" value={sort} options={SORT_OPTIONS} onChange={setSort} />
+          <FilterSelect
+            label="Category"
+            value={category ?? 'All'}
+            options={CATEGORY_OPTIONS}
+            onChange={(next) => updateParams({ category: next === 'All' ? null : next })}
+          />
+          <FilterChip
+            label="Discounted"
+            active={discountedOnly}
+            onClick={() => setDiscountedOnly((on) => !on)}
+          />
+          <FilterChip
+            label={`Ratings ${GOOD_RATING.toFixed(1)}+`}
+            active={wellRated}
+            onClick={() => setWellRated((on) => !on)}
+          />
+          <FilterChip label="Open now" active={openNow} onClick={() => setOpenNow((on) => !on)} />
+          {filtersActive && (
             <button
-              key={option}
               type="button"
-              onClick={() => setSort(option)}
-              className={`chip ${sort === option ? 'chip-active' : ''}`}
-              aria-pressed={sort === option}
+              onClick={clearFilters}
+              className="chip shrink-0 border-transparent text-muted hover:text-sale"
             >
-              {SORT_LABELS[option]}
+              Clear all
             </button>
-          ))}
+          )}
         </div>
       </div>
 
@@ -188,22 +235,35 @@ export default function SearchPage() {
         {results.length === 0 ? (
           <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
             <SearchIcon size={32} className="text-line" />
-            <p className="text-sm font-semibold text-ink">No products matched that search</p>
-            <p className="max-w-xs text-xs text-muted">
-              Try a different spelling, or browse one of these categories instead.
+            <p className="text-sm font-semibold text-ink">
+              {filtersActive ? 'Nothing matched these filters' : 'No products matched that search'}
             </p>
-            <div className="mt-1 flex flex-wrap justify-center gap-2">
-              {PRODUCT_FILTERS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className="chip"
-                  onClick={() => updateParams({ category: option, q: null })}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
+            <p className="max-w-xs text-xs text-muted">
+              {filtersActive
+                ? 'The filters above may be narrowing this too far — clear them to see everything that matches.'
+                : 'Try a different spelling, or browse one of these categories instead.'}
+            </p>
+
+            {/* Offer the way out of the filters first: suggesting another
+                category is no help when a chip is what emptied the page. */}
+            {filtersActive ? (
+              <button type="button" onClick={clearFilters} className="btn-primary mt-1">
+                Clear all filters
+              </button>
+            ) : (
+              <div className="mt-1 flex flex-wrap justify-center gap-2">
+                {PRODUCT_FILTERS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className="chip"
+                    onClick={() => updateParams({ category: option, q: null })}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">

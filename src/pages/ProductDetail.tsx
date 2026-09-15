@@ -46,7 +46,7 @@ export default function ProductDetail() {
   const similar = similarProducts(product)
 
   return (
-    <Layout header="none" cartBar={false}>
+    <Layout header="none">
       <div className="relative">
         <ProductImage
           product={product}
