@@ -12,6 +12,7 @@ import ProductDetail from './pages/ProductDetail'
 import SearchPage from './pages/Search'
 import StorePage from './pages/StorePage'
 import Stores from './pages/Stores'
+import Tracking from './pages/Tracking'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/order/:id" element={<Receipt />} />
+          <Route path="/order/:id/tracking" element={<Tracking />} />
 
           {/* Footer destinations, stubbed until the copy exists. */}
           <Route path="/about" element={<Placeholder title="About us" />} />

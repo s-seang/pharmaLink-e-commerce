@@ -18,9 +18,12 @@ export function Layout({
   header = 'default',
   floatingCart = true,
   cartBar = false,
+  background = 'white',
 }: {
   children: ReactNode
   header?: 'default' | 'none'
+  /** The ticket receipt needs a tinted page for its cut-out edges to read. */
+  background?: 'white' | 'tint'
   /** Store pages set this false — the bottom cart bar already names the store. */
   floatingCart?: boolean
   /**
@@ -34,7 +37,9 @@ export function Layout({
   const showCartBar = cartBar && cart.length > 0
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div
+      className={`flex min-h-screen flex-col ${background === 'tint' ? 'bg-navy-tint' : 'bg-white'}`}
+    >
       {header === 'default' ? <Header /> : floatingCart && <CartMenuButton />}
       {/* The cart bar sits inside main so it can stick to the bottom of the
           screen while the body is in view and settle onto the footer at the

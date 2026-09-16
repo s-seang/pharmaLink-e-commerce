@@ -10,13 +10,14 @@ import {
   Ticket,
   Truck,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AbaPayment } from '../components/AbaPayment'
 import { OptionSheet } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
+import { OrderPlaced } from '../components/OrderPlaced'
 import { useApp } from '../context/AppContext'
-import { formatPrice, getProduct } from '../data'
+import { formatPrice, getProduct, type Order, type Store } from '../data'
 import {
   DELIVERY_CHOICES,
   FREE_DELIVERY_OVER,
@@ -48,6 +49,28 @@ export default function Checkout() {
   // in the QR, and a value that changed on re-render would redraw the code the
   // shopper is part-way through scanning.
   const [abaReference, setAbaReference] = useState<string | null>(null)
+  // Placing the order empties the cart, so the receipt keeps its own copy of
+  // what was bought rather than reading a cart that is already gone.
+  const [placed, setPlaced] = useState<{ order: Order; store: Store; reference: string } | null>(
+    null,
+  )
+
+  // The receipt hands over to tracking, so the shopper watches the order being
+  // put together instead of landing back on an empty checkout.
+  const leaveReceipt = useCallback(() => {
+    if (placed) navigate(`/order/${placed.order.id}/tracking`, { replace: true })
+  }, [navigate, placed])
+
+  if (placed) {
+    return (
+      <OrderPlaced
+        order={placed.order}
+        store={placed.store}
+        reference={placed.reference}
+        onDone={leaveReceipt}
+      />
+    )
+  }
 
   const lines = cart
     .map((item) => ({ item, product: getProduct(item.productId) }))
@@ -257,8 +280,9 @@ export default function Checkout() {
           amount={total}
           reference={abaReference}
           onPaid={() => {
+            const order = placeOrder(total, label)
             setAbaReference(null)
-            confirm()
+            if (order) setPlaced({ order, store: cartStore, reference: abaReference })
           }}
           onClose={() => setAbaReference(null)}
         />

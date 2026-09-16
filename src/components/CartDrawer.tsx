@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatPrice, getProduct, type CartLine, type Product } from '../data'
 import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
+import { defaultUnitType, optionTags } from '../lib/itemTypes'
 import { itemListPrice, unitLabel } from '../lib/packaging'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
@@ -121,6 +122,18 @@ export function CartDrawer() {
                         {product.name}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted">{describeLine(item, product)}</p>
+                      {optionTags(item, product).length > 0 && (
+                        <ul className="mt-1 flex flex-wrap gap-1">
+                          {optionTags(item, product).map((tag) => (
+                            <li
+                              key={tag}
+                              className="rounded-full bg-navy-tint px-2 py-0.5 text-[11px] font-medium text-navy"
+                            >
+                              {tag}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       {item.note && (
                         <p className="mt-0.5 truncate text-xs italic text-teal">“{item.note}”</p>
                       )}
@@ -235,8 +248,9 @@ function SummaryRow({
 
 /** "Full box · 20 tablets" — how this line was put together. */
 function describeLine(item: CartLine, product: Product): string {
+  const form = item.unitType ?? defaultUnitType(product)
   const amount = `${item.units} ${unitLabel(product.unit, item.units)}`
-  if (product.unit === 'item') return product.category
+  if (product.unit === 'item') return form
   const how =
     item.packaging === 'box'
       ? 'Full pack'
@@ -245,5 +259,5 @@ function describeLine(item: CartLine, product: Product): string {
         : item.packaging === 'loose'
           ? 'Loose'
           : 'Custom'
-  return `${how} · ${amount}`
+  return `${form} · ${how} · ${amount}`
 }

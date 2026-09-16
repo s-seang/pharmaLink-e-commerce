@@ -1,7 +1,8 @@
-import { Check, Loader2, ShieldCheck, X } from 'lucide-react'
+import { Check, ExternalLink, Loader2, ShieldCheck, Smartphone, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { formatPrice, type Store } from '../data'
+import { isMobileDevice, openAbaApp } from '../lib/aba'
 import { khqrPayload } from '../lib/khqr'
 
 /**
@@ -28,6 +29,9 @@ export function AbaPayment({
 }) {
   const [qr, setQr] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
+  // A phone can hand off to the ABA app; a laptop has no ABA to open, so it
+  // sends the shopper to their phone instead.
+  const onPhone = isMobileDevice()
 
   useEffect(() => {
     let live = true
@@ -68,7 +72,9 @@ export function AbaPayment({
             <h2 id="aba-title" className="text-base font-bold text-ink">
               Pay with ABA
             </h2>
-            <p className="text-xs text-muted">Scan this in the ABA Mobile app</p>
+            <p className="text-xs text-muted">
+              {onPhone ? 'Pay in the ABA app and come back' : 'Scan with ABA Mobile on your phone'}
+            </p>
           </div>
           <button
             type="button"
@@ -80,8 +86,29 @@ export function AbaPayment({
           </button>
         </div>
 
+        {onPhone ? (
+          <button
+            type="button"
+            onClick={() => {
+              openAbaApp()
+              onPaid()
+            }}
+            className="btn-primary mt-4 w-full rounded-full"
+          >
+            <ExternalLink size={18} />
+            Open ABA Mobile app
+          </button>
+        ) : (
+          <p className="mt-4 flex items-start gap-2 rounded-card bg-navy-tint p-3 text-xs text-navy">
+            <Smartphone size={14} className="mt-0.5 shrink-0" />
+            Take out your phone, open ABA Mobile and scan the code below to pay.
+          </p>
+        )}
+
         <div className="mt-4 flex flex-col items-center rounded-card border border-line bg-surface p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Paying</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+            {store.name}'s KHQR code
+          </p>
           <p className="text-center text-sm font-bold text-ink">{store.name}</p>
           <p className="text-center text-xs text-muted">{store.abaAccount}</p>
 
@@ -107,14 +134,17 @@ export function AbaPayment({
 
         <p className="mt-3 flex items-start gap-2 text-xs text-muted">
           <ShieldCheck size={14} className="mt-0.5 shrink-0 text-teal" />
-          These are demo merchant accounts, so no money actually moves. Tap below to record the
-          order.
+          {onPhone
+            ? 'These are demo merchant accounts, so no money actually moves — opening ABA records the order.'
+            : 'These are demo merchant accounts, so no money actually moves. Tap below once you have scanned.'}
         </p>
 
-        <button type="button" onClick={onPaid} className="btn-primary mt-4 w-full">
-          <Check size={18} />
-          I have paid
-        </button>
+        {!onPhone && (
+          <button type="button" onClick={onPaid} className="btn-primary mt-4 w-full">
+            <Check size={18} />
+            I have paid
+          </button>
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,70 @@
 /** What a product is. Shown under "Filter by product" in the header. */
 export type Category = 'Medicine' | 'Cosmetic' | 'Supplement' | 'Medical Equipment'
 
+/**
+ * The shelf a cart item is configured against.
+ *
+ * Deliberately separate from {@link Category}, which is what the catalogue
+ * filters and search run on. This one exists for one job: deciding which unit
+ * types and which extra fields an item offers as it goes into the cart. A
+ * pharmacy sells skincare and make-up out of the same "Cosmetic" aisle, but
+ * they are bought in different forms.
+ */
+export type ItemCategory =
+  | 'Skincare'
+  | 'Medicine'
+  | 'Personal care'
+  | 'Baby care'
+  | 'Health devices'
+  | 'Cosmetics'
+  | 'Other'
+
+/** The forms each shelf is sold in. First entry is the fallback default. */
+export const UNIT_TYPES: Record<ItemCategory, readonly string[]> = {
+  Skincare: [
+    'Big bottle',
+    'Small bottle',
+    'Travel size',
+    'Tube',
+    'Jar',
+    'Sachet',
+    'Pump bottle',
+    'Spray bottle',
+  ],
+  Medicine: [
+    'Strip',
+    'Single tablet',
+    'Capsule',
+    'Bottle/Syrup',
+    'Sachet (powder)',
+    'Ampoule/Injection',
+    'Inhaler',
+    'Ointment/Cream tube',
+    'Drops (eye/ear/nose)',
+  ],
+  'Personal care': ['Bottle', 'Bar', 'Sachet', 'Pack', 'Roll-on', 'Stick', 'Spray'],
+  'Baby care': ['Pack', 'Box', 'Bottle', 'Tin (formula)', 'Single diaper', 'Wipe pack'],
+  'Health devices': ['Unit (single)', 'Set/Kit', 'Box (e.g. test strips)', 'Refill/Cartridge'],
+  Cosmetics: ['Bottle', 'Tube', 'Compact', 'Stick', 'Pencil', 'Palette', 'Single piece'],
+  Other: ['Piece'],
+}
+
+/** Skincare only — what the shopper is buying it for. */
+export const SKIN_TYPES = ['Oily', 'Dry', 'Sensitive', 'Combination'] as const
+export type SkinType = (typeof SKIN_TYPES)[number]
+
+/** Medicine only — what it is being taken for. */
+export const SYMPTOMS = [
+  'Fever',
+  'Headache',
+  'Cough',
+  'Allergy',
+  'Stomach',
+  'Pain',
+  'Skin infection',
+] as const
+export type Symptom = (typeof SYMPTOMS)[number]
+
 /** What kind of shop sells it. Shown under "Filter by store" in the header. */
 export type StoreType = 'Medicine' | 'Pharmacy'
 
@@ -96,6 +160,13 @@ export interface Product {
    * product genuinely varies — skincare and creams. `packSize` is the middle one.
    */
   sizes?: number[]
+  /**
+   * Overrides the shelf that would otherwise be derived from `category`, and
+   * the form it is offered in by default. Set only where the derivation gets
+   * it wrong: a lipstick and a serum are both "Cosmetic" in the catalogue.
+   */
+  itemCategory?: ItemCategory
+  unitType?: string
   /** Seed for the generated placeholder artwork. */
   imageSeed: number
 }
@@ -125,6 +196,26 @@ export interface CartLine {
   note?: string
   /** Price of one configured item. */
   price: number
+
+  /**
+   * The shelf this was configured against and the form chosen from it. Both
+   * come from {@link UNIT_TYPES}; they describe what is being handed over, and
+   * leave the price to `packaging` and `units`.
+   *
+   * Optional because a cart saved before this existed has neither.
+   */
+  itemCategory?: ItemCategory
+  unitType?: string
+
+  /** Skincare extras. */
+  volume?: number
+  skinType?: SkinType
+
+  /** Medicine extras. */
+  dosage?: string
+  perStrip?: number
+  prescription?: boolean
+  symptom?: Symptom
 }
 
 /**

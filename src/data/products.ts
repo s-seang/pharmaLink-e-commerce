@@ -138,6 +138,7 @@ export const products: Product[] = [
     price: 8.9,
     unit: 'item',
     packSize: 1,
+    unitType: 'Inhaler',
     imageSeed: 7,
   },
   {
@@ -352,6 +353,8 @@ export const products: Product[] = [
     discountPercent: 20,
     unit: 'item',
     packSize: 1,
+    itemCategory: 'Cosmetics',
+    unitType: 'Stick',
     imageSeed: 20,
   },
   {
@@ -366,6 +369,7 @@ export const products: Product[] = [
     unit: 'g',
     packSize: 15,
     sizes: [9, 15, 30],
+    itemCategory: 'Cosmetics',
     imageSeed: 21,
   },
   {
@@ -379,6 +383,8 @@ export const products: Product[] = [
     price: 9.9,
     unit: 'item',
     packSize: 1,
+    itemCategory: 'Cosmetics',
+    unitType: 'Stick',
     imageSeed: 22,
   },
   {
@@ -393,6 +399,8 @@ export const products: Product[] = [
     discountPercent: 10,
     unit: 'item',
     packSize: 1,
+    itemCategory: 'Cosmetics',
+    unitType: 'Pencil',
     imageSeed: 23,
   },
   {
@@ -519,6 +527,7 @@ export const products: Product[] = [
   },
   {
     id: 'collagen-powder',
+    unitType: 'Sachet (powder)',
     name: 'Marine Collagen Powder',
     summary: 'Unflavoured, 300g tub',
     description:
@@ -598,6 +607,7 @@ export const products: Product[] = [
     discountPercent: 20,
     unit: 'item',
     packSize: 1,
+    unitType: 'Set/Kit',
     imageSeed: 38,
   },
   {
@@ -625,6 +635,7 @@ export const products: Product[] = [
     discountPercent: 10,
     unit: 'item',
     packSize: 1,
+    unitType: 'Set/Kit',
     imageSeed: 40,
   },
   {

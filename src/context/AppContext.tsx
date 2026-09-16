@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { getProduct, getStore, type CartLine, type Order, type Store } from '../data'
+import { defaultUnitType, hasOptions, itemCategoryFor } from '../lib/itemTypes'
 import { itemPrice, roundMoney } from '../lib/packaging'
 import { DEFAULT_ADDRESS, type DeliveryAddress } from '../lib/delivery'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
@@ -175,13 +176,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /** The pharmacy the cart belongs to — every line in it comes from this one store. */
   const cartStoreId = cart.length > 0 ? getProduct(cart[0].productId)?.storeId ?? null : null
 
-  /** Same product, same packaging, same note — one line, not two. */
+  /** Everything that makes two lines the same thing to pick and to price. */
+  const configKey = (line: CartLine | CartDraft) =>
+    [
+      line.packaging,
+      line.units,
+      line.size ?? '',
+      line.note ?? '',
+      line.unitType ?? '',
+      line.volume ?? '',
+      line.skinType ?? '',
+      line.dosage ?? '',
+      line.perStrip ?? '',
+      line.prescription ? 'rx' : '',
+      line.symptom ?? '',
+    ].join('|')
+
+  /** Same product, same packaging, same form, same note — one line, not two. */
   const sameConfig = (a: CartLine, b: CartDraft) =>
-    a.productId === b.productId &&
-    a.packaging === b.packaging &&
-    a.units === b.units &&
-    (a.size ?? null) === (b.size ?? null) &&
-    (a.note ?? '') === (b.note ?? '')
+    a.productId === b.productId && configKey(a) === configKey(b)
 
   const addLine = useCallback(
     (draft: CartDraft) => {
@@ -230,6 +243,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         quantity,
         packaging: 'box',
         units: product.packSize,
+        itemCategory: itemCategoryFor(product),
+        unitType: defaultUnitType(product),
       })
     },
     [addLine],
@@ -246,12 +261,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (productId: string) => {
       const product = getProduct(productId)
       if (!product) return undefined
+      const plain = defaultUnitType(product)
       return cart.find(
         (item) =>
           item.productId === productId &&
           item.packaging === 'box' &&
           item.units === product.packSize &&
-          !item.note,
+          !item.note &&
+          (item.unitType ?? plain) === plain &&
+          !hasOptions(item),
       )
     },
     [cart],

@@ -1,8 +1,22 @@
 import { Check, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { formatPrice, type Product } from '../data'
 import {
+  formatPrice,
+  SKIN_TYPES,
+  SYMPTOMS,
+  type Product,
+  type SkinType,
+  type Symptom,
+} from '../data'
+import {
+  defaultUnitType,
+  itemCategoryFor,
+  unitTypesFor,
+  volumeUnit,
+} from '../lib/itemTypes'
+import {
+  isCounted,
   itemPrice,
   itemListPrice,
   packagingFor,
@@ -34,6 +48,18 @@ export function ProductOptions({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1)
   const [note, setNote] = useState('')
   const [added, setAdded] = useState(false)
+
+  // The shelf comes from the product; only the form is the shopper's to pick.
+  const shelf = itemCategoryFor(product)
+  const unitTypes = unitTypesFor(shelf)
+  const [unitType, setUnitType] = useState(() => defaultUnitType(product))
+
+  const [volume, setVolume] = useState('')
+  const [skinType, setSkinType] = useState<SkinType | undefined>(undefined)
+  const [dosage, setDosage] = useState('')
+  const [perStrip, setPerStrip] = useState('')
+  const [prescription, setPrescription] = useState(false)
+  const [symptom, setSymptom] = useState<Symptom | undefined>(undefined)
 
   // A typed amount only applies to the options that ask for one.
   const units = chosen.units ?? clamp(typedUnits, chosen.min ?? 1, chosen.max ?? 9999)
@@ -76,6 +102,93 @@ export function ProductOptions({ product }: { product: Product }) {
                 {product.unit}
               </button>
             ))}
+          </div>
+        </Field>
+      )}
+
+      <Field label="Unit type" hint={shelf}>
+        <div className="flex flex-wrap gap-2">
+          {unitTypes.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => {
+                setUnitType(type)
+                setAdded(false)
+              }}
+              aria-pressed={unitType === type}
+              className={`chip ${unitType === type ? 'chip-active' : ''}`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      {shelf === 'Skincare' && (
+        <Field label="Details" hint="Optional">
+          <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
+            <Line label={`Volume (${volumeUnit(product)})`}>
+              <input
+                type="number"
+                min={1}
+                value={volume}
+                onChange={(event) => setVolume(event.target.value)}
+                placeholder={String(product.packSize)}
+                className="input w-28 py-1.5"
+              />
+            </Line>
+            <Line label="Skin type">
+              <Tags
+                values={SKIN_TYPES}
+                selected={skinType}
+                onSelect={(next) => setSkinType(next)}
+              />
+            </Line>
+          </div>
+        </Field>
+      )}
+
+      {shelf === 'Medicine' && (
+        <Field label="Details" hint="Optional">
+          <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
+            <Line label="Dosage">
+              <input
+                value={dosage}
+                onChange={(event) => setDosage(event.target.value)}
+                placeholder="e.g. 500mg"
+                maxLength={20}
+                className="input w-28 py-1.5"
+              />
+            </Line>
+
+            {isCounted(product.unit) && (
+              <Line label="Per strip">
+                <input
+                  type="number"
+                  min={1}
+                  value={perStrip}
+                  onChange={(event) => setPerStrip(event.target.value)}
+                  placeholder="10"
+                  className="input w-28 py-1.5"
+                />
+              </Line>
+            )}
+
+            <Line label="Prescription">
+              <button
+                type="button"
+                onClick={() => setPrescription((on) => !on)}
+                aria-pressed={prescription}
+                className={`chip ${prescription ? 'chip-active' : ''}`}
+              >
+                {prescription ? 'Required' : 'Not required'}
+              </button>
+            </Line>
+
+            <Line label="Symptom">
+              <Tags values={SYMPTOMS} selected={symptom} onSelect={(next) => setSymptom(next)} />
+            </Line>
           </div>
         </Field>
       )}
@@ -185,6 +298,14 @@ export function ProductOptions({ product }: { product: Product }) {
               size: sizes ? size : undefined,
               note: note.trim() || undefined,
               price: each,
+              itemCategory: shelf,
+              unitType,
+              volume: Number(volume) || undefined,
+              skinType,
+              dosage: dosage.trim() || undefined,
+              perStrip: Number(perStrip) || undefined,
+              prescription: prescription || undefined,
+              symptom,
             })
             setAdded(true)
           }}
@@ -219,6 +340,43 @@ function Field({
         {hint && <span className="text-xs text-muted">{hint}</span>}
       </div>
       {children}
+    </div>
+  )
+}
+
+/** One optional field: its name on the left, its control on the right. */
+function Line({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <span className="text-xs font-medium text-muted">{label}</span>
+      {children}
+    </div>
+  )
+}
+
+/** Single-select chips that clear when the chosen one is tapped again. */
+function Tags<T extends string>({
+  values,
+  selected,
+  onSelect,
+}: {
+  values: readonly T[]
+  selected: T | undefined
+  onSelect: (value: T | undefined) => void
+}) {
+  return (
+    <div className="flex flex-wrap justify-end gap-1.5">
+      {values.map((value) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => onSelect(selected === value ? undefined : value)}
+          aria-pressed={selected === value}
+          className={`chip px-2.5 py-1 text-xs ${selected === value ? 'chip-active' : ''}`}
+        >
+          {value}
+        </button>
+      ))}
     </div>
   )
 }
