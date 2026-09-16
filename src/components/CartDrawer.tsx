@@ -1,8 +1,9 @@
-import { ArrowRight, ChevronRight, CreditCard, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
+import { ArrowRight, ChevronRight, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { finalPrice, formatPrice, getProduct } from '../data'
+import { formatPrice, getProduct, type CartLine, type Product } from '../data'
 import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
+import { itemListPrice, unitLabel } from '../lib/packaging'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
 
@@ -29,7 +30,10 @@ export function CartDrawer() {
 
   // Subtotal is what the products cost before any sale, so the discount the
   // shopper is getting shows up as its own line rather than disappearing.
-  const subtotal = lines.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0)
+  const subtotal = lines.reduce(
+    (sum, { item, product }) => sum + itemListPrice(product, item.units) * item.quantity,
+    0,
+  )
   const discount = subtotal - cartTotal
   const delivery = cartTotal >= FREE_DELIVERY_OVER ? 0 : STANDARD_FEE
   const total = cartTotal + delivery
@@ -99,7 +103,7 @@ export function CartDrawer() {
 
               <ul className="card divide-y divide-line">
                 {lines.map(({ item, product }) => (
-                  <li key={product.id} className="flex gap-3 p-3">
+                  <li key={item.lineId} className="flex gap-3 p-3">
                     <Link to={`/product/${product.id}`} onClick={closeCart} className="shrink-0">
                       <ProductImage
                         product={product}
@@ -116,16 +120,19 @@ export function CartDrawer() {
                       >
                         {product.name}
                       </Link>
-                      <p className="mt-0.5 text-xs text-muted">{product.category}</p>
+                      <p className="mt-0.5 text-xs text-muted">{describeLine(item, product)}</p>
+                      {item.note && (
+                        <p className="mt-0.5 truncate text-xs italic text-teal">“{item.note}”</p>
+                      )}
                       <p className="mt-0.5 text-sm font-bold text-navy">
-                        {formatPrice(finalPrice(product) * item.quantity)}
+                        {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
 
                     <div className="flex shrink-0 flex-col items-end justify-between">
                       <button
                         type="button"
-                        onClick={() => removeFromCart(product.id)}
+                        onClick={() => removeFromCart(item.lineId)}
                         className="rounded-lg p-1 text-muted transition-colors hover:text-sale"
                         aria-label={`Remove ${product.name}`}
                       >
@@ -136,7 +143,7 @@ export function CartDrawer() {
                         <button
                           type="button"
                           className="p-1.5 text-muted hover:text-navy"
-                          onClick={() => setQuantity(product.id, item.quantity - 1)}
+                          onClick={() => setQuantity(item.lineId, item.quantity - 1)}
                           aria-label={`Decrease quantity of ${product.name}`}
                         >
                           <Minus size={14} />
@@ -147,7 +154,7 @@ export function CartDrawer() {
                         <button
                           type="button"
                           className="p-1.5 text-muted hover:text-navy"
-                          onClick={() => setQuantity(product.id, item.quantity + 1)}
+                          onClick={() => setQuantity(item.lineId, item.quantity + 1)}
                           aria-label={`Increase quantity of ${product.name}`}
                         >
                           <Plus size={14} />
@@ -185,21 +192,6 @@ export function CartDrawer() {
                 )}
               </section>
 
-              <section className="card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-ink">Payment method</h3>
-                  <span className="text-xs font-semibold text-muted">Card on delivery</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-tint text-navy">
-                    <CreditCard size={18} />
-                  </span>
-                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
-                    Pay on delivery
-                  </p>
-                  <ChevronRight size={18} className="shrink-0 text-muted" />
-                </div>
-              </section>
             </div>
 
             <div className="border-t border-line bg-white p-4">
@@ -239,4 +231,19 @@ function SummaryRow({
       <dd className={`font-semibold ${tone === 'sale' ? 'text-sale' : 'text-ink'}`}>{value}</dd>
     </div>
   )
+}
+
+/** "Full box · 20 tablets" — how this line was put together. */
+function describeLine(item: CartLine, product: Product): string {
+  const amount = `${item.units} ${unitLabel(product.unit, item.units)}`
+  if (product.unit === 'item') return product.category
+  const how =
+    item.packaging === 'box'
+      ? 'Full pack'
+      : item.packaging === 'strip'
+        ? 'Part pack'
+        : item.packaging === 'loose'
+          ? 'Loose'
+          : 'Custom'
+  return `${how} · ${amount}`
 }

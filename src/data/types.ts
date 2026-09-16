@@ -47,6 +47,8 @@ export interface Store {
   prepMinutes: number
   /** Running a free-delivery voucher. Surfaced by the "Offers" filter. */
   freeDelivery?: boolean
+  /** ABA merchant account money is collected into. Mock, like the rest. */
+  abaAccount: string
   /** Consultation line — each store supplies its own. */
   phone: string
   address: string
@@ -59,6 +61,21 @@ export interface Store {
   credentials?: Credentials
 }
 
+/**
+ * What one unit of a product is. `item` means it cannot be broken up — a
+ * thermometer or a lipstick is sold whole or not at all, which is what keeps
+ * "loose pills" off the wrong products.
+ */
+export type ProductUnit =
+  | 'tablet'
+  | 'capsule'
+  | 'softgel'
+  | 'sachet'
+  | 'ml'
+  | 'g'
+  | 'piece'
+  | 'item'
+
 export interface Product {
   id: string
   name: string
@@ -70,14 +87,44 @@ export interface Product {
   price: number
   /** Whole-number percentage, e.g. 25 for -25%. */
   discountPercent?: number
+  /** What one unit of this product is. */
+  unit: ProductUnit
+  /** How many units the pack that `price` buys contains. */
+  packSize: number
+  /**
+   * The sizes this is sold in, in `unit`, smallest first. Only set where a
+   * product genuinely varies — skincare and creams. `packSize` is the middle one.
+   */
+  sizes?: number[]
   /** Seed for the generated placeholder artwork. */
   imageSeed: number
 }
 
-/** One line of a placed order — the same shape as a cart line. */
-export interface OrderLine {
+/** How a product was broken up for one cart line. */
+export type PackagingKind = 'box' | 'strip' | 'loose' | 'custom'
+
+/**
+ * One configured line in the cart or on an order.
+ *
+ * Keyed by `lineId`, not by product: the same paracetamol can sit in the cart
+ * twice — a full box and five loose tablets — because they are different things
+ * to pick and to price. `price` is the cost of one of these, frozen when it was
+ * added, so a later change to the catalogue cannot silently reprice a cart.
+ */
+export interface CartLine {
+  lineId: string
   productId: string
+  /** How many of this configured item. */
   quantity: number
+  packaging: PackagingKind
+  /** Units in one item — tablets, millilitres, pieces. */
+  units: number
+  /** Chosen size in the product's unit, where the product has sizes. */
+  size?: number
+  /** Anything the shopper asked the pharmacy for. */
+  note?: string
+  /** Price of one configured item. */
+  price: number
 }
 
 /**
@@ -88,9 +135,11 @@ export interface OrderLine {
 export interface Order {
   id: string
   storeId: string
-  lines: OrderLine[]
+  lines: CartLine[]
   /** What was actually paid, delivery included. */
   total: number
   /** ISO timestamp, used to order the list and to show "last ordered". */
   placedOn: string
+  /** How it was paid for, as shown on the receipt. */
+  payment?: string
 }

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AbaPayment } from '../components/AbaPayment'
 import { OptionSheet } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { useApp } from '../context/AppContext'
@@ -25,6 +26,7 @@ import {
   type DeliveryKey,
 } from '../lib/delivery'
 import { deliveryMinutes, distanceKm, formatEta } from '../lib/geo'
+import { itemListPrice } from '../lib/packaging'
 
 type PaymentKey = 'cash' | 'aba' | 'card'
 
@@ -42,6 +44,10 @@ export default function Checkout() {
   const [payment, setPayment] = useState<PaymentKey>('cash')
   const [speedSheet, setSpeedSheet] = useState(false)
   const [editing, setEditing] = useState(false)
+  // Minted once when the sheet opens, not per render: the reference is printed
+  // in the QR, and a value that changed on re-render would redraw the code the
+  // shopper is part-way through scanning.
+  const [abaReference, setAbaReference] = useState<string | null>(null)
 
   const lines = cart
     .map((item) => ({ item, product: getProduct(item.productId) }))
@@ -67,7 +73,10 @@ export default function Checkout() {
   }
 
   const choice = deliveryChoice(speed)
-  const subtotal = lines.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0)
+  const subtotal = lines.reduce(
+    (sum, { item, product }) => sum + itemListPrice(product, item.units) * item.quantity,
+    0,
+  )
   const discount = subtotal - cartTotal
   const voucher = voucherValue({
     fee: choice.fee,
@@ -75,6 +84,13 @@ export default function Checkout() {
     storeFreeDelivery: cartStore.freeDelivery,
   })
   const total = cartTotal + choice.fee - voucher
+
+  const label = PAYMENTS.find((option) => option.value === payment)?.label ?? 'Cash on delivery'
+
+  const confirm = () => {
+    const order = placeOrder(total, label)
+    if (order) navigate(`/order/${order.id}`)
+  }
 
   const baseMinutes = deliveryMinutes(cartStore.prepMinutes, distanceKm(coords, cartStore))
   const eta = formatEta(Math.max(10, baseMinutes - choice.minutesSaved))
@@ -215,18 +231,38 @@ export default function Checkout() {
 
       <div className="sticky bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur">
         <div className="app-container py-3">
-          {/* Nothing is charged — this records the order and empties the cart. */}
+          {/* ABA collects first, so the order is only written once the shopper
+              says they have paid. The other methods settle on delivery. */}
           <button
             type="button"
             onClick={() => {
-              if (placeOrder(total)) navigate('/orders')
+              if (payment === 'aba') {
+                setAbaReference(
+                  `PL-${cartStore.id.slice(0, 6).toUpperCase()}-${Date.now().toString().slice(-6)}`,
+                )
+                return
+              }
+              confirm()
             }}
             className="btn-primary w-full rounded-full py-3"
           >
-            Place order — {formatPrice(total)}
+            {payment === 'aba' ? 'Pay with ABA' : 'Place order'} — {formatPrice(total)}
           </button>
         </div>
       </div>
+
+      {abaReference && (
+        <AbaPayment
+          store={cartStore}
+          amount={total}
+          reference={abaReference}
+          onPaid={() => {
+            setAbaReference(null)
+            confirm()
+          }}
+          onClose={() => setAbaReference(null)}
+        />
+      )}
 
       {speedSheet && (
         <OptionSheet

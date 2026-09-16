@@ -6,6 +6,7 @@ import Checkout from './pages/Checkout'
 import Discounts from './pages/Discounts'
 import Home from './pages/Home'
 import Orders from './pages/Orders'
+import Receipt from './pages/Receipt'
 import Placeholder from './pages/Placeholder'
 import ProductDetail from './pages/ProductDetail'
 import SearchPage from './pages/Search'
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/account" element={<Account />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/order/:id" element={<Receipt />} />
 
           {/* Footer destinations, stubbed until the copy exists. */}
           <Route path="/about" element={<Placeholder title="About us" />} />

@@ -36,6 +36,26 @@ export function ProductCard({
 
   return (
     <article className="flex flex-col">
+      {showStore && store && (
+        <div className="mb-2 flex items-center gap-1.5">
+          <Link
+            to={`/store/${store.id}`}
+            className="flex min-w-0 items-center gap-1.5 text-xs text-muted hover:text-navy"
+          >
+            <StoreLogo store={store} size={18} />
+            <span className="truncate">{store.name}</span>
+          </Link>
+          {/* The rating is the store's — products are not rated. */}
+          <span
+            className="ml-auto flex shrink-0 items-center gap-0.5 text-xs font-semibold text-ink"
+            aria-label={`${store.name} is rated ${store.rating.toFixed(1)} out of 5`}
+          >
+            <Star size={12} className="text-star" fill="currentColor" />
+            {store.rating.toFixed(1)}
+          </span>
+        </div>
+      )}
+
       <div className="relative">
         <Link to={`/product/${product.id}`} aria-label={product.name}>
           <ProductImage
@@ -73,29 +93,10 @@ export function ProductCard({
         <CartStepper product={product} />
       </div>
 
-      {showStore && store && (
-        <div className="mt-2 flex items-center gap-1.5">
-          <Link
-            to={`/store/${store.id}`}
-            className="flex min-w-0 items-center gap-1.5 text-xs text-muted hover:text-navy"
-          >
-            <StoreLogo store={store} size={18} />
-            <span className="truncate">{store.name}</span>
-          </Link>
-          {/* The rating is the store's — products are not rated. */}
-          <span
-            className="ml-auto flex shrink-0 items-center gap-0.5 text-xs font-semibold text-ink"
-            aria-label={`${store.name} is rated ${store.rating.toFixed(1)} out of 5`}
-          >
-            <Star size={12} className="text-star" fill="currentColor" />
-            {store.rating.toFixed(1)}
-          </span>
-        </div>
-      )}
 
       <Link
         to={`/product/${product.id}`}
-        className="mt-1 line-clamp-2 text-sm font-bold leading-snug text-ink hover:text-navy"
+        className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-ink hover:text-navy"
       >
         {product.name}
       </Link>

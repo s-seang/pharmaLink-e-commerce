@@ -17,6 +17,8 @@ export const products: Product[] = [
     storeId: 'phnom-penh-pharmacy',
     price: 1.5,
     discountPercent: 20,
+    unit: 'tablet',
+    packSize: 20,
     imageSeed: 1,
   },
   {
@@ -28,6 +30,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'green-cross',
     price: 1.3,
+    unit: 'tablet',
+    packSize: 20,
     imageSeed: 1,
   },
   {
@@ -39,6 +43,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'lotus-pharmacy',
     price: 1.75,
+    unit: 'tablet',
+    packSize: 20,
     imageSeed: 1,
   },
   {
@@ -50,6 +56,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'sunrise-pharma',
     price: 4.2,
+    unit: 'capsule',
+    packSize: 16,
     imageSeed: 2,
   },
   {
@@ -62,6 +70,8 @@ export const products: Product[] = [
     storeId: 'angkor-care',
     price: 2.8,
     discountPercent: 15,
+    unit: 'tablet',
+    packSize: 30,
     imageSeed: 3,
   },
   {
@@ -73,6 +83,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'city-med',
     price: 3.1,
+    unit: 'tablet',
+    packSize: 30,
     imageSeed: 3,
   },
   {
@@ -84,6 +96,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'green-cross',
     price: 2.0,
+    unit: 'sachet',
+    packSize: 10,
     imageSeed: 4,
   },
   {
@@ -95,6 +109,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'harmony-pharmacy',
     price: 3.1,
+    unit: 'tablet',
+    packSize: 20,
     imageSeed: 5,
   },
   {
@@ -107,6 +123,8 @@ export const products: Product[] = [
     storeId: 'lotus-pharmacy',
     price: 5.4,
     discountPercent: 25,
+    unit: 'capsule',
+    packSize: 14,
     imageSeed: 6,
   },
   {
@@ -118,6 +136,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'phnom-penh-pharmacy',
     price: 8.9,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 7,
   },
   {
@@ -129,6 +149,8 @@ export const products: Product[] = [
     category: 'Medicine',
     storeId: 'bayon-drugstore',
     price: 2.6,
+    unit: 'g',
+    packSize: 30,
     imageSeed: 8,
   },
   {
@@ -141,6 +163,8 @@ export const products: Product[] = [
     storeId: 'mekong-health',
     price: 3.8,
     discountPercent: 10,
+    unit: 'ml',
+    packSize: 120,
     imageSeed: 9,
   },
 
@@ -155,6 +179,9 @@ export const products: Product[] = [
     storeId: 'sunrise-pharma',
     price: 26.0,
     discountPercent: 20,
+    unit: 'ml',
+    packSize: 75,
+    sizes: [45, 75, 150],
     imageSeed: 34,
   },
   {
@@ -166,6 +193,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'harmony-pharmacy',
     price: 24.5,
+    unit: 'ml',
+    packSize: 75,
+    sizes: [45, 75, 150],
     imageSeed: 34,
   },
   {
@@ -177,6 +207,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'angkor-care',
     price: 27.9,
+    unit: 'ml',
+    packSize: 75,
+    sizes: [45, 75, 150],
     imageSeed: 34,
   },
   {
@@ -189,6 +222,9 @@ export const products: Product[] = [
     storeId: 'sunrise-pharma',
     price: 14.9,
     discountPercent: 30,
+    unit: 'ml',
+    packSize: 50,
+    sizes: [30, 50, 100],
     imageSeed: 11,
   },
   {
@@ -200,6 +236,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'angkor-care',
     price: 9.5,
+    unit: 'ml',
+    packSize: 150,
+    sizes: [90, 150, 300],
     imageSeed: 12,
   },
   {
@@ -212,6 +251,9 @@ export const products: Product[] = [
     storeId: 'harmony-pharmacy',
     price: 12.0,
     discountPercent: 25,
+    unit: 'ml',
+    packSize: 30,
+    sizes: [18, 30, 60],
     imageSeed: 13,
   },
   {
@@ -223,6 +265,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'sunrise-pharma',
     price: 16.5,
+    unit: 'ml',
+    packSize: 100,
+    sizes: [60, 100, 200],
     imageSeed: 14,
   },
   {
@@ -234,6 +279,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'lotus-pharmacy',
     price: 7.2,
+    unit: 'g',
+    packSize: 15,
+    sizes: [9, 15, 30],
     imageSeed: 15,
   },
   {
@@ -246,6 +294,9 @@ export const products: Product[] = [
     storeId: 'green-cross',
     price: 6.8,
     discountPercent: 15,
+    unit: 'ml',
+    packSize: 400,
+    sizes: [250, 400, 800],
     imageSeed: 16,
   },
   {
@@ -257,6 +308,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'city-med',
     price: 8.4,
+    unit: 'ml',
+    packSize: 200,
+    sizes: [125, 200, 400],
     imageSeed: 17,
   },
   {
@@ -268,6 +322,8 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'angkor-care',
     price: 5.0,
+    unit: 'piece',
+    packSize: 5,
     imageSeed: 18,
   },
   {
@@ -279,6 +335,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'harmony-pharmacy',
     price: 11.9,
+    unit: 'ml',
+    packSize: 15,
+    sizes: [9, 15, 30],
     imageSeed: 19,
   },
   {
@@ -291,6 +350,8 @@ export const products: Product[] = [
     storeId: 'sunrise-pharma',
     price: 4.5,
     discountPercent: 20,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 20,
   },
   {
@@ -302,6 +363,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'harmony-pharmacy',
     price: 18.0,
+    unit: 'g',
+    packSize: 15,
+    sizes: [9, 15, 30],
     imageSeed: 21,
   },
   {
@@ -313,6 +377,8 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'lotus-pharmacy',
     price: 9.9,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 22,
   },
   {
@@ -325,6 +391,8 @@ export const products: Product[] = [
     storeId: 'city-med',
     price: 6.2,
     discountPercent: 10,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 23,
   },
   {
@@ -336,6 +404,9 @@ export const products: Product[] = [
     category: 'Cosmetic',
     storeId: 'angkor-care',
     price: 10.5,
+    unit: 'ml',
+    packSize: 200,
+    sizes: [125, 200, 400],
     imageSeed: 24,
   },
 
@@ -350,6 +421,8 @@ export const products: Product[] = [
     storeId: 'phnom-penh-pharmacy',
     price: 7.5,
     discountPercent: 20,
+    unit: 'tablet',
+    packSize: 60,
     imageSeed: 25,
   },
   {
@@ -361,6 +434,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'bayon-drugstore',
     price: 6.9,
+    unit: 'tablet',
+    packSize: 60,
     imageSeed: 25,
   },
   {
@@ -372,6 +447,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'sunrise-pharma',
     price: 9.2,
+    unit: 'softgel',
+    packSize: 90,
     imageSeed: 26,
   },
   {
@@ -384,6 +461,8 @@ export const products: Product[] = [
     storeId: 'harmony-pharmacy',
     price: 13.4,
     discountPercent: 15,
+    unit: 'capsule',
+    packSize: 100,
     imageSeed: 27,
   },
   {
@@ -395,6 +474,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'lotus-pharmacy',
     price: 6.9,
+    unit: 'tablet',
+    packSize: 60,
     imageSeed: 28,
   },
   {
@@ -406,6 +487,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'green-cross',
     price: 15.0,
+    unit: 'capsule',
+    packSize: 30,
     imageSeed: 29,
   },
   {
@@ -417,6 +500,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'mekong-health',
     price: 5.6,
+    unit: 'tablet',
+    packSize: 60,
     imageSeed: 30,
   },
   {
@@ -428,6 +513,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'royal-medic',
     price: 11.0,
+    unit: 'tablet',
+    packSize: 90,
     imageSeed: 31,
   },
   {
@@ -440,6 +527,8 @@ export const products: Product[] = [
     storeId: 'sunrise-pharma',
     price: 24.0,
     discountPercent: 25,
+    unit: 'g',
+    packSize: 300,
     imageSeed: 32,
   },
   {
@@ -451,6 +540,8 @@ export const products: Product[] = [
     category: 'Supplement',
     storeId: 'bayon-drugstore',
     price: 12.8,
+    unit: 'capsule',
+    packSize: 60,
     imageSeed: 33,
   },
 
@@ -464,6 +555,8 @@ export const products: Product[] = [
     category: 'Medical Equipment',
     storeId: 'city-med',
     price: 6.5,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 35,
   },
   {
@@ -476,6 +569,8 @@ export const products: Product[] = [
     storeId: 'phnom-penh-pharmacy',
     price: 38.0,
     discountPercent: 15,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 36,
   },
   {
@@ -487,6 +582,8 @@ export const products: Product[] = [
     category: 'Medical Equipment',
     storeId: 'harmony-pharmacy',
     price: 19.5,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 37,
   },
   {
@@ -499,6 +596,8 @@ export const products: Product[] = [
     storeId: 'sunrise-pharma',
     price: 29.0,
     discountPercent: 20,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 38,
   },
   {
@@ -510,6 +609,8 @@ export const products: Product[] = [
     category: 'Medical Equipment',
     storeId: 'lotus-pharmacy',
     price: 45.0,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 39,
   },
   {
@@ -522,6 +623,8 @@ export const products: Product[] = [
     storeId: 'green-cross',
     price: 14.0,
     discountPercent: 10,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 40,
   },
   {
@@ -533,6 +636,8 @@ export const products: Product[] = [
     category: 'Medical Equipment',
     storeId: 'royal-medic',
     price: 16.5,
+    unit: 'item',
+    packSize: 1,
     imageSeed: 41,
   },
 ]

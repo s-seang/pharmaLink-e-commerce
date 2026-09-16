@@ -7,7 +7,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { finalPrice, getProduct, getStore, type Order, type Store } from '../data'
+import { getProduct, getStore, type CartLine, type Order, type Store } from '../data'
+import { itemPrice, roundMoney } from '../lib/packaging'
 import { DEFAULT_ADDRESS, type DeliveryAddress } from '../lib/delivery'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
 
@@ -16,17 +17,15 @@ export interface User {
   contact: string
 }
 
-export interface CartItem {
-  productId: string
-  quantity: number
-}
+/** What the configurator hands over; the cart supplies the id and the price. */
+export type CartDraft = Omit<CartLine, 'lineId' | 'price'> & { price?: number }
 
 /**
  * An add-to-cart that was blocked because it came from a different pharmacy.
  * Held here until the shopper either empties the cart for it or backs out.
  */
 export interface CartConflict {
-  item: CartItem
+  item: CartLine
   /** The pharmacy the cart already belongs to. */
   current: Store
   /** The pharmacy the blocked product belongs to. */
@@ -45,15 +44,20 @@ interface AppState {
   openAuth: (tab?: AuthTab) => void
   closeAuth: () => void
 
-  cart: CartItem[]
+  cart: CartLine[]
   cartCount: number
   cartTotal: number
   /** A cart holds one pharmacy's products at a time; null when empty. */
   cartStoreId: string | null
   cartStore: Store | undefined
+  /** Quick add: one whole pack, the default any card's `+` uses. */
   addToCart: (productId: string, quantity?: number) => void
-  setQuantity: (productId: string, quantity: number) => void
-  removeFromCart: (productId: string) => void
+  /** Add a line configured on the product page. */
+  addConfigured: (draft: CartDraft) => void
+  /** The whole-pack line for a product, which the card steppers drive. */
+  defaultLine: (productId: string) => CartLine | undefined
+  setQuantity: (lineId: string, quantity: number) => void
+  removeFromCart: (lineId: string) => void
   clearCart: () => void
 
   cartOpen: boolean
@@ -67,7 +71,7 @@ interface AppState {
   /** Orders already placed, newest first. Empty until the first checkout. */
   orders: Order[]
   /** Record the cart as an order, then empty it. Total includes delivery. */
-  placeOrder: (total: number) => Order | undefined
+  placeOrder: (total: number, payment?: string) => Order | undefined
 
   cartConflict: CartConflict | null
   /** Drop the old pharmacy's items and start the cart over with the new one. */
@@ -89,7 +93,7 @@ const STORAGE_KEY = 'pharmalink.state.v1'
 
 interface Persisted {
   user: User | null
-  cart: CartItem[]
+  cart: CartLine[]
   favourites: string[]
   orders: Order[]
   address: DeliveryAddress
@@ -99,7 +103,7 @@ interface Persisted {
  * Keep only the lines belonging to the first product's pharmacy. A cart saved
  * before the one-pharmacy rule existed can hold several stores at once.
  */
-function singleStore(cart: CartItem[]): CartItem[] {
+function singleStore(cart: CartLine[]): CartLine[] {
   const storeId = cart.length > 0 ? getProduct(cart[0].productId)?.storeId : undefined
   if (!storeId) return cart.length > 0 ? [] : cart
   return cart.filter((item) => getProduct(item.productId)?.storeId === storeId)
@@ -143,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const initial = useMemo(() => readPersisted(), [])
 
   const [user, setUser] = useState<User | null>(initial.user)
-  const [cart, setCart] = useState<CartItem[]>(initial.cart)
+  const [cart, setCart] = useState<CartLine[]>(initial.cart)
   const [favourites, setFavourites] = useState<string[]>(initial.favourites)
   const [orders, setOrders] = useState<Order[]>(initial.orders)
   const [address, setAddress] = useState<DeliveryAddress>(initial.address)
@@ -171,10 +175,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /** The pharmacy the cart belongs to — every line in it comes from this one store. */
   const cartStoreId = cart.length > 0 ? getProduct(cart[0].productId)?.storeId ?? null : null
 
-  const addToCart = useCallback(
-    (productId: string, quantity = 1) => {
-      const product = getProduct(productId)
+  /** Same product, same packaging, same note — one line, not two. */
+  const sameConfig = (a: CartLine, b: CartDraft) =>
+    a.productId === b.productId &&
+    a.packaging === b.packaging &&
+    a.units === b.units &&
+    (a.size ?? null) === (b.size ?? null) &&
+    (a.note ?? '') === (b.note ?? '')
+
+  const addLine = useCallback(
+    (draft: CartDraft) => {
+      const product = getProduct(draft.productId)
       if (!product) return
+
+      const line: CartLine = {
+        ...draft,
+        lineId: `${draft.productId}-${draft.packaging}-${draft.units}-${Date.now()}`,
+        price: roundMoney(draft.price ?? itemPrice(product, draft.units)),
+      }
 
       // One pharmacy per order: a product from anywhere else has to wait until
       // the shopper agrees to empty the cart for it.
@@ -182,24 +200,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const current = getStore(cartStoreId)
         const next = getStore(product.storeId)
         if (current && next) {
-          setCartConflict({ item: { productId, quantity }, current, next })
+          setCartConflict({ item: line, current, next })
           return
         }
       }
 
       setCart((currentCart) => {
-        const existing = currentCart.find((item) => item.productId === productId)
+        const existing = currentCart.find((item) => sameConfig(item, draft))
         if (existing) {
           return currentCart.map((item) =>
-            item.productId === productId
-              ? { ...item, quantity: item.quantity + quantity }
+            item.lineId === existing.lineId
+              ? { ...item, quantity: item.quantity + draft.quantity }
               : item,
           )
         }
-        return [...currentCart, { productId, quantity }]
+        return [...currentCart, line]
       })
     },
     [cartStoreId],
+  )
+
+  /** A whole pack of the listed size — what a card's `+` means. */
+  const addToCart = useCallback(
+    (productId: string, quantity = 1) => {
+      const product = getProduct(productId)
+      if (!product) return
+      addLine({
+        productId,
+        quantity,
+        packaging: 'box',
+        units: product.packSize,
+      })
+    },
+    [addLine],
+  )
+
+  const addConfigured = useCallback((draft: CartDraft) => addLine(draft), [addLine])
+
+  /**
+   * The whole-pack line for a product. Card steppers read and write only this
+   * one, so a part-pack configured on the product page is never changed by a
+   * `+` somewhere else in a grid.
+   */
+  const defaultLine = useCallback(
+    (productId: string) => {
+      const product = getProduct(productId)
+      if (!product) return undefined
+      return cart.find(
+        (item) =>
+          item.productId === productId &&
+          item.packaging === 'box' &&
+          item.units === product.packSize &&
+          !item.note,
+      )
+    },
+    [cart],
   )
 
   /** Empty the cart and start it again with the product that was blocked. */
@@ -217,7 +272,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * empties the cart.
    */
   const placeOrder = useCallback(
-    (total: number) => {
+    (total: number, payment?: string) => {
       if (cart.length === 0 || !cartStoreId) return undefined
       const order: Order = {
         id: `o-${Date.now()}`,
@@ -225,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         lines: cart.map((item) => ({ ...item })),
         total,
         placedOn: new Date().toISOString(),
+        payment,
       }
       setOrders((current) => [order, ...current])
       setCart([])
@@ -234,16 +290,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [cart, cartStoreId],
   )
 
-  const setQuantity = useCallback((productId: string, quantity: number) => {
+  const setQuantity = useCallback((lineId: string, quantity: number) => {
     setCart((current) =>
       quantity <= 0
-        ? current.filter((item) => item.productId !== productId)
-        : current.map((item) => (item.productId === productId ? { ...item, quantity } : item)),
+        ? current.filter((item) => item.lineId !== lineId)
+        : current.map((item) => (item.lineId === lineId ? { ...item, quantity } : item)),
     )
   }, [])
 
-  const removeFromCart = useCallback((productId: string) => {
-    setCart((current) => current.filter((item) => item.productId !== productId))
+  const removeFromCart = useCallback((lineId: string) => {
+    setCart((current) => current.filter((item) => item.lineId !== lineId))
   }, [])
 
   const toggleFavourite = useCallback((productId: string) => {
@@ -275,10 +331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
-  const cartTotal = cart.reduce((total, item) => {
-    const product = getProduct(item.productId)
-    return product ? total + finalPrice(product) * item.quantity : total
-  }, 0)
+  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
 
   const value: AppState = {
     user,
@@ -293,6 +346,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cartStoreId,
     cartStore: cartStoreId ? getStore(cartStoreId) : undefined,
     addToCart,
+    addConfigured,
+    defaultLine,
     setQuantity,
     removeFromCart,
     clearCart: () => setCart([]),

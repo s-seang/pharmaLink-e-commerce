@@ -31,8 +31,11 @@ const OPEN_WIDTH = 112
  * two controls swapping places.
  */
 export function CartStepper({ product }: { product: Product }) {
-  const { cart, cartStoreId, addToCart, setQuantity, removeFromCart } = useApp()
-  const quantity = cart.find((item) => item.productId === product.id)?.quantity ?? 0
+  const { cartStoreId, addToCart, defaultLine, setQuantity, removeFromCart } = useApp()
+  // Only the whole-pack line: a part-pack configured on the product page is not
+  // something a `+` in a grid should be quietly changing.
+  const line = defaultLine(product.id)
+  const quantity = line?.quantity ?? 0
 
   const [open, setOpen] = useState(false)
   const timer = useRef<number | undefined>(undefined)
@@ -95,9 +98,10 @@ export function CartStepper({ product }: { product: Product }) {
       <button
         type="button"
         onClick={() => {
-          if (quantity <= 1) removeFromCart(product.id)
+          if (!line) return
+          if (quantity <= 1) removeFromCart(line.lineId)
           else {
-            setQuantity(product.id, quantity - 1)
+            setQuantity(line.lineId, quantity - 1)
             openFor()
           }
         }}

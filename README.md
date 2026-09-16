@@ -22,6 +22,7 @@ npm run lint
 | `/stores` | All pharmacies | `?type=`; searchable, sortable by distance or rating |
 | `/discounts` | All discounts | Filter by category, sort by discount / price / rating |
 | `/account` | Account | Stub — "Coming soon" |
+| `/order/:id` | Receipt | Confirmation and itemised receipt for one order |
 | `/checkout` | Checkout | Address, delivery option, voucher, payment, place order |
 | `/orders` | Your previous orders | Every pharmacy ordered from; own top bar, no header |
 
@@ -39,6 +40,8 @@ Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared place
 - `src/components/` — shell (header, footer, layout, modals) and shared cards
 - `src/lib/geo.ts` — haversine distance, Phnom Penh fallback, `tel:` and map links
 - `src/lib/delivery.ts` — delivery options, the free-delivery voucher, and the saved address
+- `src/lib/packaging.ts` — what a product can be broken into, and unit pricing
+- `src/lib/khqr.ts` — KHQR (EMVCo) payload building for ABA payment
 
 ## Taxonomy
 
@@ -103,6 +106,19 @@ separate category would have made those products unreachable by chip.
 - **Store artwork is drawn, like product artwork.** `StoreBannerCard` paints the shop's own
   `logoColor` and leads with its deepest discount (`bestDiscount`). Stores have no photos,
   and the app has no external image dependency to lean on.
+- **Products are bought by the unit, not by the pack.** Every product carries a `unit`
+  (`tablet`, `ml`, `item`…) and a `packSize`, and `packagingFor()` derives what the shop
+  will break it into from those — so a thermometer (`unit: 'item'`) offers only "single
+  item" and can never be sold as loose pills, while tablets offer a strip and a counted
+  handful. Everything prices off one `unitPrice()`, which means a full pack lands exactly
+  on the listed shelf price and a part-pack is a plain fraction of it, with no hidden
+  premium for splitting. Verified across the catalogue: all 41 products reconcile.
+- **Cart lines are keyed by `lineId`, not by product.** The same paracetamol can sit in the
+  cart twice — a full box and five loose tablets — so `setQuantity` and `removeFromCart`
+  take a line id. Each line freezes its own `price` when added, so a catalogue change
+  cannot silently reprice a cart. Card steppers deliberately drive only the whole-pack line
+  (`defaultLine`), so a `+` in a grid never quietly edits a part-pack configured on the
+  product page.
 - **A cart holds one pharmacy at a time.** Each pharmacy packs and delivers its own order,
   so there is no way to check out across two of them. `addToCart` compares the product's
   `storeId` against `cartStoreId` (the store of the first line in the cart) and, when they
@@ -158,10 +174,11 @@ separate category would have made those products unreachable by chip.
 - Somewhere to see favourites. The heart on product cards and product detail writes to
   `favourites` in `AppContext` and persists, but no screen lists what is in it yet —
   `/account` is the obvious home for it.
-- Payment. `/checkout` offers cash, ABA Pay and card, but the choice is not recorded on
-  the order and nothing is charged — "Place order" writes the order and empties the cart.
-  The totals are real: subtotal, product discounts, the delivery fee for the chosen option,
-  and the voucher.
+- Real payment. Choosing ABA builds a genuine KHQR (EMVCo TLV with a CRC-16/CCITT check,
+  verified against the standard `29B1` value) carrying the shop's account, the exact
+  amount and an order reference — but `Store.abaAccount` is mock, so scanning moves no
+  money. "I have paid" is taken on trust; there is no settlement callback. Swapping in
+  live merchant accounts is the remaining gap. Cash and card are recorded, not charged.
 - The delivery address is a mock default (`DEFAULT_ADDRESS`) the shopper can edit at
   checkout; it persists, but there is no account behind it and no validation.
 - Order detail. `/orders` lists the pharmacies ordered from, not the orders themselves;

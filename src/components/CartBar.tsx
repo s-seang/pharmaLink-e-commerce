@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext'
 import { formatPrice, getProduct } from '../data'
+import { itemListPrice } from '../lib/packaging'
 
 /**
  * Bottom bar summarising the cart. It is the last thing inside `<main>`, and it
@@ -25,7 +26,7 @@ export function CartBar() {
 
   const before = cart.reduce((sum, item) => {
     const product = getProduct(item.productId)
-    return product ? sum + product.price * item.quantity : sum
+    return product ? sum + itemListPrice(product, item.units) * item.quantity : sum
   }, 0)
   const saving = before > cartTotal
 
