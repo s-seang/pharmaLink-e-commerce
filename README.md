@@ -22,6 +22,7 @@ npm run lint
 | `/stores` | All pharmacies | `?type=`; searchable, sortable by distance or rating |
 | `/discounts` | All discounts | Filter by category, sort by discount / price / rating |
 | `/account` | Account | Stub — "Coming soon" |
+| `/checkout` | Checkout | Address, delivery option, voucher, payment, place order |
 | `/orders` | Your previous orders | Every pharmacy ordered from; own top bar, no header |
 
 Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared placeholder.
@@ -37,6 +38,7 @@ Footer destinations (`/about`, `/policy/*`, `/services/*`) render a shared place
   `StoreBannerCard.tsx` — the full-width shop card on `/orders`
 - `src/components/` — shell (header, footer, layout, modals) and shared cards
 - `src/lib/geo.ts` — haversine distance, Phnom Penh fallback, `tel:` and map links
+- `src/lib/delivery.ts` — delivery options, the free-delivery voucher, and the saved address
 
 ## Taxonomy
 
@@ -79,6 +81,14 @@ separate category would have made those products unreachable by chip.
 - **"Order again" does not re-offer what was bought.** `topPicks()` leads with whatever is
   on offer at that shop now. Someone returning to a pharmacy is returning to the shop, not
   repeating a box of paracetamol.
+- **Delivery pricing lives in `src/lib/delivery.ts`, not in the components.** The cart
+  drawer quotes the standard fee and the checkout quotes whichever option is chosen, but
+  both read the same constants, so the two screens can never disagree about a total. The
+  voucher is worth the *standard* fee (`voucherValue`), so upgrading to express still costs
+  the difference rather than riding free — the usual "free delivery up to X" shape.
+- **Checkout is where an order is placed, not the cart.** The cart's "Proceed to payment"
+  only navigates; `/checkout` settles the address, delivery option and payment method and
+  calls `placeOrder()`. Nothing is charged either way.
 - **Orders are real, and nothing seeds them.** `orders` lives in `AppContext` beside the
   cart and persists to `localStorage`; `placeOrder()` writes one. Until the first checkout
   the list is empty, so the home page's "Order again" section is absent rather than empty,
@@ -148,10 +158,12 @@ separate category would have made those products unreachable by chip.
 - Somewhere to see favourites. The heart on product cards and product detail writes to
   `favourites` in `AppContext` and persists, but no screen lists what is in it yet —
   `/account` is the obvious home for it.
-- Payment. "Proceed to payment" records the order, empties the cart and lands on
-  `/orders` — but nothing is charged, and the payment method row is a fixed "Pay on
-  delivery" placeholder. The order summary is real: subtotal, the discount the sale prices
-  add up to, and a $1.50 delivery fee waived over $20.
+- Payment. `/checkout` offers cash, ABA Pay and card, but the choice is not recorded on
+  the order and nothing is charged — "Place order" writes the order and empties the cart.
+  The totals are real: subtotal, product discounts, the delivery fee for the chosen option,
+  and the voucher.
+- The delivery address is a mock default (`DEFAULT_ADDRESS`) the shopper can edit at
+  checkout; it persists, but there is no account behind it and no validation.
 - Order detail. `/orders` lists the pharmacies ordered from, not the orders themselves;
   `Order.lines` and `Order.total` are recorded but nothing reads them yet.
 # pharmaLink-e-commerce

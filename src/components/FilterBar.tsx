@@ -81,7 +81,7 @@ export function FilterSelect<T extends string>({
   )
 }
 
-function OptionSheet<T extends string>({
+export function OptionSheet<T extends string>({
   title,
   options,
   value,

@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AppProvider } from './context/AppContext'
 import Account from './pages/Account'
+import Checkout from './pages/Checkout'
 import Discounts from './pages/Discounts'
 import Home from './pages/Home'
 import Orders from './pages/Orders'
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/stores" element={<Stores />} />
           <Route path="/discounts" element={<Discounts />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
 
           {/* Footer destinations, stubbed until the copy exists. */}

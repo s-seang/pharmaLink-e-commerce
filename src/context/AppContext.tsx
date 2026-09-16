@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { finalPrice, getProduct, getStore, type Order, type Store } from '../data'
+import { DEFAULT_ADDRESS, type DeliveryAddress } from '../lib/delivery'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
 
 export interface User {
@@ -60,6 +61,9 @@ interface AppState {
   closeCart: () => void
 
   /** Set when an add was blocked; resolve it with one of the two calls below. */
+  address: DeliveryAddress
+  setAddress: (address: DeliveryAddress) => void
+
   /** Orders already placed, newest first. Empty until the first checkout. */
   orders: Order[]
   /** Record the cart as an order, then empty it. Total includes delivery. */
@@ -88,6 +92,7 @@ interface Persisted {
   cart: CartItem[]
   favourites: string[]
   orders: Order[]
+  address: DeliveryAddress
 }
 
 /**
@@ -101,7 +106,13 @@ function singleStore(cart: CartItem[]): CartItem[] {
 }
 
 function readPersisted(): Persisted {
-  const empty: Persisted = { user: null, cart: [], favourites: [], orders: [] }
+  const empty: Persisted = {
+    user: null,
+    cart: [],
+    favourites: [],
+    orders: [],
+    address: DEFAULT_ADDRESS,
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return empty
@@ -111,6 +122,7 @@ function readPersisted(): Persisted {
       cart: singleStore(Array.isArray(parsed.cart) ? parsed.cart : []),
       favourites: Array.isArray(parsed.favourites) ? parsed.favourites : [],
       orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+      address: { ...DEFAULT_ADDRESS, ...(parsed.address ?? {}) },
     }
   } catch {
     return empty
@@ -134,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(initial.cart)
   const [favourites, setFavourites] = useState<string[]>(initial.favourites)
   const [orders, setOrders] = useState<Order[]>(initial.orders)
+  const [address, setAddress] = useState<DeliveryAddress>(initial.address)
   const [authModal, setAuthModal] = useState<AuthTab | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [cartConflict, setCartConflict] = useState<CartConflict | null>(null)
@@ -142,11 +155,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, cart, favourites, orders }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, cart, favourites, orders, address }))
     } catch {
       // Storage can be unavailable in private mode — state stays in memory only.
     }
-  }, [user, cart, favourites, orders])
+  }, [user, cart, favourites, orders, address])
 
   const login = useCallback((contact: string, name?: string) => {
     setUser({ name: name?.trim() || nameFromContact(contact), contact })
@@ -286,6 +299,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cartOpen,
     openCart: () => setCartOpen(true),
     closeCart: () => setCartOpen(false),
+    address,
+    setAddress,
     orders,
     placeOrder,
     cartConflict,

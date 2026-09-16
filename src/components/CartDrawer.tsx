@@ -2,12 +2,9 @@ import { ArrowRight, ChevronRight, CreditCard, Minus, Plus, ShoppingCart, Trash2
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { finalPrice, formatPrice, getProduct } from '../data'
+import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
-
-/** Flat delivery charge, waived once the order is big enough. */
-const DELIVERY_FEE = 1.5
-const FREE_DELIVERY_OVER = 20
 
 export function CartDrawer() {
   const {
@@ -19,7 +16,6 @@ export function CartDrawer() {
     setQuantity,
     removeFromCart,
     clearCart,
-    placeOrder,
   } = useApp()
   const navigate = useNavigate()
 
@@ -35,7 +31,7 @@ export function CartDrawer() {
   // shopper is getting shows up as its own line rather than disappearing.
   const subtotal = lines.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0)
   const discount = subtotal - cartTotal
-  const delivery = cartTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE
+  const delivery = cartTotal >= FREE_DELIVERY_OVER ? 0 : STANDARD_FEE
   const total = cartTotal + delivery
 
   return (
@@ -207,13 +203,13 @@ export function CartDrawer() {
             </div>
 
             <div className="border-t border-line bg-white p-4">
-              {/* No payment step exists yet: this records the order so the shop
-                  turns up under "Order again", empties the cart, and shows the
-                  shopper where it went. */}
+              {/* The order is placed on /checkout, where the address, delivery
+                  option and payment method are settled. */}
               <button
                 type="button"
                 onClick={() => {
-                  if (placeOrder(total)) navigate('/orders')
+                  closeCart()
+                  navigate('/checkout')
                 }}
                 className="btn-primary w-full rounded-full py-3"
               >
