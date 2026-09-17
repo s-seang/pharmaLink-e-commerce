@@ -9,6 +9,11 @@ import { useApp, type AuthTab } from '../context/AppContext'
  * Controlled from outside so the screen around it can title itself — the two
  * are one flow with one heading, not a form with a tab strip on top.
  */
+/**
+ * Browsers put their own password-manager bubbles over a form that asks for a
+ * new password, which lands on top of the button underneath. The fields opt
+ * out of autofill so nothing covers the screen.
+ */
 export function AuthForm({
   tab,
   onTab,
@@ -60,7 +65,7 @@ export function AuthForm({
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
                 placeholder="First Name"
-                autoComplete="given-name"
+                autoComplete="off"
               />
             </Field>
             <Field label="Last Name" className="flex-1">
@@ -69,7 +74,7 @@ export function AuthForm({
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
                 placeholder="Last Name"
-                autoComplete="family-name"
+                autoComplete="off"
               />
             </Field>
           </div>
@@ -81,7 +86,7 @@ export function AuthForm({
             value={contact}
             onChange={(event) => setContact(event.target.value)}
             placeholder="Enter Email Address"
-            autoComplete="username"
+            autoComplete="off"
           />
         </Field>
 
@@ -93,7 +98,7 @@ export function AuthForm({
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Enter Your Phone Number"
               inputMode="tel"
-              autoComplete="tel"
+              autoComplete="off"
             />
           </Field>
         )}
@@ -106,7 +111,7 @@ export function AuthForm({
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter Your Password"
-              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              autoComplete="off"
             />
             <button
               type="button"
@@ -127,7 +132,7 @@ export function AuthForm({
               value={confirm}
               onChange={(event) => setConfirm(event.target.value)}
               placeholder="Enter Your Confirm Password"
-              autoComplete="new-password"
+              autoComplete="off"
             />
           </Field>
         )}

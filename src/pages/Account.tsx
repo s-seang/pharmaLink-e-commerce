@@ -29,16 +29,33 @@ export default function Account() {
   return (
     <Layout header="none" floatingCart={false}>
       {user ? (
-        <header className="bg-navy pb-20 pt-4">
-          <div className="app-container flex items-center gap-2">
-            <Link
-              to="/"
-              aria-label="Back to home"
-              className="-ml-1.5 rounded-lg p-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <ChevronLeft size={22} />
-            </Link>
-            <h1 className="text-lg font-bold text-white">Profile</h1>
+        /* The same block the sign-in screen wears, with the account in it. */
+        <header className="rounded-br-[3.5rem] bg-navy-deep pb-8 pt-4">
+          <div className="app-container max-w-md">
+            <div className="flex items-center gap-2">
+              <Link
+                to="/"
+                aria-label="Back to home"
+                className="-ml-1.5 rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <ChevronLeft size={22} />
+              </Link>
+              <h1 className="text-sm font-semibold text-white/80">Profile</h1>
+            </div>
+
+            <div className="mt-5 flex items-center gap-4">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/15 text-lg font-bold text-white ring-2 ring-white/30">
+                {initialsOf(user.name) || <UserRound size={30} />}
+              </span>
+
+              <div className="min-w-0">
+                <p className="truncate text-2xl font-extrabold tracking-tight text-white">
+                  {user.name}
+                </p>
+                <p className="truncate text-sm text-white/75">{phone}</p>
+                {email && <p className="truncate text-xs text-white/60">{email}</p>}
+              </div>
+            </div>
           </div>
         </header>
       ) : (
@@ -76,17 +93,9 @@ export default function Account() {
       )}
 
       {user && (
-      <div className="app-container min-h-screen max-w-md space-y-3 pb-10">
-        <section className="card -mt-14 px-4 pb-4 pt-0 text-center">
-          <span className="mx-auto -mt-10 flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-navy-tint text-navy shadow-sm">
-            <UserRound size={34} />
-          </span>
-
-          <h2 className="mt-2 text-base font-bold text-ink">{user?.name}</h2>
-          <p className="mt-0.5 text-xs text-muted">{phone}</p>
-          {email && <p className="text-xs text-muted">{email}</p>}
-
-          <ul className="mt-4 divide-y divide-line border-t border-line text-left">
+      <div className="app-container min-h-screen max-w-md space-y-3 py-6">
+        <section className="card px-4 py-1">
+          <ul className="divide-y divide-line text-left">
               <Row icon={UserRound} label="My Account" value={user.name} />
               <Row icon={Phone} label="Phone Number" value={phone} />
               <Row icon={MapPin} label="Delivery Address" value={address.line1} />
@@ -115,6 +124,16 @@ export default function Account() {
       )}
     </Layout>
   )
+}
+
+/** "Sok Chanthy" becomes "SC" — a stand-in until there is a photo to show. */
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('')
 }
 
 /** One account detail. Becomes a link only where there is somewhere to go. */
