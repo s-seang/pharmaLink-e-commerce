@@ -1,6 +1,14 @@
 import type { Store } from '../data'
 
-/** Circular store mark — initials on the store's brand colour. */
+/**
+ * A store's badge: its own logo where there is one, its initials otherwise.
+ *
+ * Every badge is the same circle at the same size, and the artwork is fitted
+ * inside rather than cropped to fill — these are wordmarks, and a cover crop
+ * would cut the name in half. The circle takes the colour sampled from the
+ * artwork, so a logo on a dark ground keeps it instead of sitting in a white
+ * square.
+ */
 export function StoreLogo({
   store,
   size = 56,
@@ -12,7 +20,7 @@ export function StoreLogo({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full border border-line font-semibold text-white ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-line font-semibold text-white ${className}`}
       style={{
         width: size,
         height: size,
@@ -21,7 +29,16 @@ export function StoreLogo({
       }}
       aria-hidden="true"
     >
-      {store.initials}
+      {store.logo ? (
+        <img
+          src={store.logo}
+          alt=""
+          className="h-full w-full object-contain"
+          style={{ padding: Math.round(size * 0.12) }}
+        />
+      ) : (
+        store.initials
+      )}
     </span>
   )
 }

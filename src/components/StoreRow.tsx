@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { isOpenNow, type Store } from '../data'
 import { formatDistance } from '../lib/geo'
 import { OpenBadge } from './OpenBadge'
+import { StoreLogo } from './StoreLogo'
 import { StarRating } from './StarRating'
 
 /** Fixed height, so rows line up whether stacked or laid out in a rail. */
@@ -32,7 +33,7 @@ export function StoreRow({
         shut ? 'opacity-60 hover:opacity-100' : ''
       } ${className}`}
     >
-      <StoreLogoMark store={store} />
+      <StoreLogo store={store} size={48} />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-ink">{store.name}</p>
@@ -49,17 +50,5 @@ export function StoreRow({
 
       <ChevronRight size={18} className="shrink-0 text-muted" />
     </Link>
-  )
-}
-
-function StoreLogoMark({ store }: { store: Store }) {
-  return (
-    <span
-      className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-      style={{ backgroundColor: store.logoColor }}
-      aria-hidden="true"
-    >
-      {store.initials}
-    </span>
   )
 }

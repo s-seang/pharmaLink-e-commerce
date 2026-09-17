@@ -77,17 +77,6 @@ export type StoreType = 'Pharmacy' | 'Skincare'
 /** Every category that exists in the catalogue. */
 export const CATEGORIES: Category[] = ['Medicine', 'Cosmetic', 'Supplement', 'Medical Equipment']
 
-/**
- * The product chips in the header. Medicine is one of them: it used to be
- * reached through the store filter, which no longer has a Medicine chip.
- */
-export const PRODUCT_FILTERS: Category[] = [
-  'Medicine',
-  'Cosmetic',
-  'Supplement',
-  'Medical Equipment',
-]
-
 export const STORE_FILTERS: StoreType[] = ['Pharmacy', 'Skincare']
 
 export interface OpeningHours {
@@ -110,9 +99,15 @@ export interface Store {
   name: string
   branch: string
   type: StoreType
-  /** Two-letter mark used by the placeholder logo. */
+  /** Two-letter mark, used where no logo artwork is supplied. */
   initials: string
+  /**
+   * The colour the logo sits on — sampled from the artwork itself, so the
+   * badge behind it matches rather than framing it in a stray white square.
+   */
   logoColor: string
+  /** Supplied logo artwork, fitted inside the store's badge. */
+  logo?: string
   /** Ratings belong to stores, not products. */
   rating: number
   reviewCount: number

@@ -86,12 +86,15 @@ export function ProductImage({
   const palette = PALETTES[product.imageSeed % PALETTES.length]
 
   if (product.imageUrl) {
+    // Fitted, never cropped: a photograph of a box or a tube loses its shape
+    // the moment its edges are cut off, and the packaging is what identifies
+    // the product on the shelf.
     return (
       <img
         src={product.imageUrl}
         alt={product.name}
         loading="lazy"
-        className={`bg-surface object-cover ${rounded} ${className}`}
+        className={`bg-white object-contain p-1 ${rounded} ${className}`}
       />
     )
   }

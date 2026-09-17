@@ -47,17 +47,17 @@ export function ProductCard({
         <div className="mb-2 flex items-center gap-1.5">
           <Link
             to={`/store/${store.id}`}
-            className="flex min-w-0 items-center gap-1.5 text-xs text-muted hover:text-navy"
+            className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink hover:text-navy"
           >
-            <StoreLogo store={store} size={18} />
+            <StoreLogo store={store} size={26} />
             <span className="truncate">{store.name}</span>
           </Link>
           {/* The rating is the store's — products are not rated. */}
           <span
-            className="ml-auto flex shrink-0 items-center gap-0.5 text-xs font-semibold text-ink"
+            className="ml-auto flex shrink-0 items-center gap-0.5 text-sm font-semibold text-ink"
             aria-label={`${store.name} is rated ${store.rating.toFixed(1)} out of 5`}
           >
-            <Star size={12} className="text-star" fill="currentColor" />
+            <Star size={14} className="text-star" fill="currentColor" />
             {store.rating.toFixed(1)}
           </span>
         </div>

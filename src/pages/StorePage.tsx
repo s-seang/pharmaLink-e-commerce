@@ -19,7 +19,7 @@ import { OpenBadge } from '../components/OpenBadge'
 import { StarRating } from '../components/StarRating'
 import { StoreLogo } from '../components/StoreLogo'
 import {
-  CATEGORIES,
+  stockedCategories,
   getStore,
   isOpenNow,
   nextOpening,
@@ -187,7 +187,7 @@ export default function StorePage() {
         <section>
           <h2 className="section-title mb-3">Products</h2>
           <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto">
-            {(['All', ...CATEGORIES] as (Category | 'All')[]).map((option) => (
+            {(['All', ...stockedCategories] as (Category | 'All')[]).map((option) => (
               <button
                 key={option}
                 type="button"

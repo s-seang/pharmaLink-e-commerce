@@ -1,6 +1,6 @@
 import { products } from './products'
 import { stores } from './stores'
-import type { Category, Order, Product, Store, StoreType } from './types'
+import { CATEGORIES, type Category, type Order, type Product, type Store, type StoreType } from './types'
 
 export { products, stores }
 export * from './types'
@@ -20,6 +20,14 @@ export function productsByStore(storeId: string): Product[] {
 export function productsInCategory(category: Category): Product[] {
   return products.filter((p) => p.category === category)
 }
+
+/**
+ * The category chips worth showing: a filter that can only ever come back
+ * empty is a dead end, so a category with nothing in it does not appear.
+ */
+export const stockedCategories: Category[] = CATEGORIES.filter((category) =>
+  products.some((product) => product.category === category),
+)
 
 export function storesOfType(type: StoreType): Store[] {
   return stores.filter((s) => s.type === type)

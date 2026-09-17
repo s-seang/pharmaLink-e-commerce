@@ -12,6 +12,12 @@ export interface Banner {
   /** What the artwork says, for anyone who cannot see it. */
   alt: string
   to: string
+  /**
+   * Which edge to keep when a banner is wider than the frame and has to be
+   * cropped. Set where the wording sits off-centre; the middle is fine
+   * otherwise.
+   */
+  position?: string
 }
 
 export const banners: Banner[] = [
@@ -32,6 +38,7 @@ export const banners: Banner[] = [
     image: vitaminC,
     alt: 'Best seller — glow boosting vitamin C with glutathione',
     to: '/search?category=Cosmetic',
+    position: 'object-left',
   },
   {
     id: 'derma-co',

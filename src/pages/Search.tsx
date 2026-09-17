@@ -7,7 +7,7 @@ import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
 import {
   CATEGORIES,
-  PRODUCT_FILTERS,
+  stockedCategories,
   finalPrice,
   getStore,
   isOpenNow,
@@ -31,7 +31,7 @@ const SORT_OPTIONS: FilterOption<SortKey>[] = [
 
 const CATEGORY_OPTIONS: FilterOption<Category | 'All'>[] = [
   { value: 'All', label: 'All products' },
-  ...CATEGORIES.map((category) => ({ value: category, label: category })),
+  ...stockedCategories.map((category) => ({ value: category, label: category })),
 ]
 
 /** The store rating a product has to clear for the "Ratings 4.0+" chip. */
@@ -252,7 +252,7 @@ export default function SearchPage() {
               </button>
             ) : (
               <div className="mt-1 flex flex-wrap justify-center gap-2">
-                {PRODUCT_FILTERS.map((option) => (
+                {stockedCategories.map((option) => (
                   <button
                     key={option}
                     type="button"

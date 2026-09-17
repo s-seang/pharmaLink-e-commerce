@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { DealCard } from '../components/DealCard'
-import { CATEGORIES, discountedProducts, finalPrice, storeRating, type Category } from '../data'
+import { stockedCategories, discountedProducts, finalPrice, storeRating, type Category } from '../data'
 
 type SortKey = 'discount' | 'price' | 'rating'
 
@@ -47,7 +47,7 @@ export default function Discounts() {
         </div>
 
         <div className="app-container no-scrollbar flex gap-2 overflow-x-auto pb-2">
-          {(['All', ...CATEGORIES] as (Category | 'All')[]).map((option) => (
+          {(['All', ...stockedCategories] as (Category | 'All')[]).map((option) => (
             <button
               key={option}
               type="button"

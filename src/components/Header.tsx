@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useCartEntry } from '../hooks/useCartEntry'
-import { PRODUCT_FILTERS, STORE_FILTERS } from '../data'
+import { stockedCategories, STORE_FILTERS } from '../data'
 import { useHideOnScroll } from '../hooks/useHideOnScroll'
 import { Logo } from './Logo'
 
@@ -185,7 +185,7 @@ function Filters() {
       </FilterRow>
 
       <FilterRow label="Filter by product:">
-        {PRODUCT_FILTERS.map((category) => (
+        {stockedCategories.map((category) => (
           <button
             key={category}
             type="button"

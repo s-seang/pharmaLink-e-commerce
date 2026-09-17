@@ -1,6 +1,6 @@
 import { Phone } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { CATEGORIES } from '../data'
+import { stockedCategories } from '../data'
 import { Logo } from './Logo'
 
 const SUPPORT_PHONE = '+855 23 900 100'
@@ -18,7 +18,7 @@ export function Footer() {
           </Group>
 
           <Group title="Categories">
-            {CATEGORIES.map((category) => (
+            {stockedCategories.map((category) => (
               <FooterLink key={category} to={`/search?category=${category}`}>
                 {category}
               </FooterLink>

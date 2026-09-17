@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useLoopingRail } from '../hooks/useLoopingRail'
 import { banners } from '../data/banners'
 
 /**
- * The supplied promotional artwork. Deliberately manual — it never scrolls on
- * its own. The bar underneath is a scroll position indicator, not a set of
- * dots: its thumb is one banner wide and slides as you swipe.
+ * The supplied promotional artwork, moving on by itself and looping back to
+ * the first once the last is in view. The bar underneath is a scroll position
+ * indicator, not a set of dots: its thumb is one banner wide.
  *
  * The rail stays inside the page gutter rather than bleeding to the screen
  * edge, so a banner lines up with the sections above and below it. One banner
@@ -14,6 +15,8 @@ import { banners } from '../data/banners'
 export function BannerCarousel() {
   const railRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
+
+  useLoopingRail(railRef, 5000)
 
   useEffect(() => {
     const rail = railRef.current
@@ -55,12 +58,12 @@ export function BannerCarousel() {
             to={banner.to}
             className="w-full shrink-0 snap-start overflow-hidden rounded-card border border-line bg-white sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]"
           >
-            {/* Contained rather than cropped: these are marketing creatives, and
-                a cover crop would cut the wording off the wide ones. */}
+            {/* Filled rather than fitted, so no banner sits in white space.
+                Anything wider than the frame is cropped from its far edge. */}
             <img
               src={banner.image}
               alt={banner.alt}
-              className="aspect-[2/1] w-full object-contain"
+              className={`aspect-[2/1] w-full object-cover ${banner.position ?? ''}`}
             />
           </Link>
         ))}
