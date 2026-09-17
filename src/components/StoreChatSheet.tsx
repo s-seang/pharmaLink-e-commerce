@@ -2,6 +2,7 @@ import { Camera, Image, Mic, Paperclip, Phone, Send, Square, Trash2, Video, X } 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Store } from '../data'
 import { telHref } from '../lib/geo'
+import { CameraCapture, type CaptureKind } from './CameraCapture'
 import { StoreLogo } from './StoreLogo'
 
 interface Message {
@@ -68,6 +69,8 @@ export function StoreChatSheet({
   const replyTimer = useRef<number>(0)
 
   const [attaching, setAttaching] = useState(false)
+  /** Which camera is open, if either. */
+  const [camera, setCamera] = useState<CaptureKind | null>(null)
   const [recording, setRecording] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [micError, setMicError] = useState('')
@@ -82,13 +85,11 @@ export function StoreChatSheet({
    * camera on a phone, so choosing a file and shooting one need their own.
    */
   const libraryPicker = useRef<HTMLInputElement>(null)
-  const photoPicker = useRef<HTMLInputElement>(null)
-  const videoPicker = useRef<HTMLInputElement>(null)
 
-  const attach = (file: File | undefined) => {
+  const attach = (file: Blob | undefined, forced?: CaptureKind) => {
     setAttaching(false)
     if (!file) return
-    const kind = file.type.startsWith('video') ? ('video' as const) : ('image' as const)
+    const kind = forced ?? (file.type.startsWith('video') ? ('video' as const) : ('image' as const))
     const url = URL.createObjectURL(file)
     audioUrls.current.push(url)
     setMessages((current) => [
@@ -171,7 +172,12 @@ export function StoreChatSheet({
     if (!open) return
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key !== 'Escape') return
+      // The menu is the innermost thing open, so it closes first.
+      setAttaching((open) => {
+        if (!open) onClose()
+        return false
+      })
     }
 
     document.addEventListener('keydown', onKey)
@@ -376,8 +382,18 @@ export function StoreChatSheet({
           </div>
         ) : (
           <form onSubmit={send} className="relative flex items-center gap-2 border-t border-line p-3">
+            {/* Anywhere else dismisses the menu, the way a menu should. */}
             {attaching && (
-              <div className="absolute bottom-full left-3 mb-2 w-52 overflow-hidden rounded-xl border border-line bg-white shadow-xl">
+              <button
+                type="button"
+                aria-label="Close attachment menu"
+                onClick={() => setAttaching(false)}
+                className="fixed inset-0 z-10 cursor-default"
+              />
+            )}
+
+            {attaching && (
+              <div className="absolute bottom-full left-3 z-20 mb-2 w-52 overflow-hidden rounded-xl border border-line bg-white shadow-xl">
                 <AttachOption
                   icon={Image}
                   label="Photo or video"
@@ -386,12 +402,18 @@ export function StoreChatSheet({
                 <AttachOption
                   icon={Camera}
                   label="Take a photo"
-                  onClick={() => photoPicker.current?.click()}
+                  onClick={() => {
+                    setAttaching(false)
+                    setCamera('image')
+                  }}
                 />
                 <AttachOption
                   icon={Video}
                   label="Record a video"
-                  onClick={() => videoPicker.current?.click()}
+                  onClick={() => {
+                    setAttaching(false)
+                    setCamera('video')
+                  }}
                 />
               </div>
             )}
@@ -444,25 +466,17 @@ export function StoreChatSheet({
               hidden
               onChange={(event) => attach(event.target.files?.[0])}
             />
-            <input
-              ref={photoPicker}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-              onChange={(event) => attach(event.target.files?.[0])}
-            />
-            <input
-              ref={videoPicker}
-              type="file"
-              accept="video/*"
-              capture="environment"
-              hidden
-              onChange={(event) => attach(event.target.files?.[0])}
-            />
           </form>
         )}
       </aside>
+
+      {camera && (
+        <CameraCapture
+          kind={camera}
+          onCapture={(blob, kind) => attach(blob, kind)}
+          onClose={() => setCamera(null)}
+        />
+      )}
     </>
   )
 }

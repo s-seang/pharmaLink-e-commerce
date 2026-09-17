@@ -2,10 +2,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Heart,
   KeyRound,
   LogOut,
   MapPin,
-  Phone,
+  ShoppingCart,
+  Ticket,
   UserRound,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -20,7 +22,7 @@ import { useApp, type AuthTab } from '../context/AppContext'
  * their name, then the account rows and the standing links as two groups.
  */
 export default function Account() {
-  const { user, address, orders, logout } = useApp()
+  const { user, address, orders, favourites, carts, logout } = useApp()
   const [tab, setTab] = useState<AuthTab>('login')
 
   const email = user?.contact.includes('@') ? user.contact : undefined
@@ -94,19 +96,17 @@ export default function Account() {
 
       {user && (
       <div className="app-container min-h-screen max-w-md space-y-3 py-6">
-        <section className="card px-4 py-1">
-          <ul className="divide-y divide-line text-left">
-              <Row icon={UserRound} label="My Account" value={user.name} />
-              <Row icon={Phone} label="Phone Number" value={phone} />
-              <Row icon={MapPin} label="Delivery Address" value={address.line1} />
-              <Row icon={KeyRound} label="Change Password" />
-              <Row
-                icon={ClipboardList}
-                label="Your Orders"
-                value={`${orders.length} placed`}
-                to="/orders"
-              />
-          </ul>
+        {/* The four things people come here to open. */}
+        <div className="grid grid-cols-2 gap-3">
+          <Tile icon={ClipboardList} label="Order history" to="/orders" note={`${orders.length} placed`} />
+          <Tile icon={Heart} label="Favourites" to="/favourites" note={`${favourites.length} saved`} />
+          <Tile icon={Ticket} label="Vouchers" to="/discounts" note="Offers on now" />
+          <Tile icon={ShoppingCart} label="Your carts" to="/carts" note={`${carts.length} open`} />
+        </div>
+
+        <section className="card divide-y divide-line">
+          <Row icon={MapPin} label="Delivery address" value={address.line1} />
+          <Row icon={KeyRound} label="Change password" value="Last changed — never" />
         </section>
 
         <section className="card divide-y divide-line">
@@ -136,39 +136,48 @@ function initialsOf(name: string): string {
     .join('')
 }
 
-/** One account detail. Becomes a link only where there is somewhere to go. */
-function Row({
+/** One of the four squares: where it goes, and how much is waiting there. */
+function Tile({
   icon: Icon,
   label,
-  value,
+  note,
   to,
 }: {
   icon: typeof UserRound
   label: string
-  value?: string
-  to?: string
+  note: string
+  to: string
 }) {
-  const body = (
-    <>
+  return (
+    <Link
+      to={to}
+      className="card flex flex-col items-center gap-1 px-3 py-5 text-center transition-colors hover:border-navy"
+    >
+      <Icon size={22} className="text-navy" />
+      <span className="text-sm font-semibold text-ink">{label}</span>
+      <span className="text-xs text-muted">{note}</span>
+    </Link>
+  )
+}
+
+/** A standing detail of the account, with nowhere else to go. */
+function Row({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof UserRound
+  label: string
+  value?: string
+}) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5">
       <Icon size={17} className="shrink-0 text-navy" />
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-ink">{label}</span>
         {value && <span className="block truncate text-xs text-muted">{value}</span>}
       </span>
-      {to && <ChevronRight size={16} className="shrink-0 text-muted" />}
-    </>
-  )
-
-  return (
-    <li>
-      {to ? (
-        <Link to={to} className="flex items-center gap-3 py-3 transition-colors hover:text-navy">
-          {body}
-        </Link>
-      ) : (
-        <div className="flex items-center gap-3 py-3">{body}</div>
-      )}
-    </li>
+    </div>
   )
 }
 

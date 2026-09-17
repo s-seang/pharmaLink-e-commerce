@@ -1,8 +1,12 @@
 import type { Category, Product } from '../data'
 
 /**
- * Generated placeholder artwork, so the app has no external image dependency.
- * Each product gets a stable colourway from its seed and a glyph per category.
+ * A product's picture: its own photograph where the catalogue has one, and
+ * generated artwork where it does not.
+ *
+ * The drawn fallback means the app needs no external image dependency to look
+ * finished — each product gets a stable colourway from its seed and a glyph
+ * per category.
  */
 
 const PALETTES = [
@@ -80,6 +84,17 @@ export function ProductImage({
   rounded?: string
 }) {
   const palette = PALETTES[product.imageSeed % PALETTES.length]
+
+  if (product.imageUrl) {
+    return (
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        loading="lazy"
+        className={`bg-surface object-cover ${rounded} ${className}`}
+      />
+    )
+  }
 
   return (
     <div className={`overflow-hidden ${rounded} ${className}`} style={{ backgroundColor: palette.bg }}>

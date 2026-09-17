@@ -18,7 +18,7 @@ import { OptionSheet } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { OrderPlaced } from '../components/OrderPlaced'
 import { useApp } from '../context/AppContext'
-import { formatPrice, getProduct, type Order, type Store } from '../data'
+import { formatPrice, getProduct, isOpenNow, type Order, type Store } from '../data'
 import {
   DELIVERY_CHOICES,
   FREE_DELIVERY_OVER,
@@ -39,8 +39,18 @@ const PAYMENTS: { value: PaymentKey; label: string; note: string; icon: typeof B
 ]
 
 export default function Checkout() {
-  const { cartLines, cartTotal, cartStore, placeOrder, address, setAddress, coords, user, openAuth } =
-    useApp()
+  const {
+    cartLines,
+    cartTotal,
+    cartStore,
+    placeOrder,
+    address,
+    setAddress,
+    coords,
+    user,
+    openAuth,
+    now,
+  } = useApp()
   const navigate = useNavigate()
 
   const [speed, setSpeed] = useState<DeliveryKey>('standard')
@@ -111,6 +121,7 @@ export default function Checkout() {
   const total = cartTotal + choice.fee - voucher
 
   const label = PAYMENTS.find((option) => option.value === payment)?.label ?? 'Cash on delivery'
+  const shut = !isOpenNow(cartStore, now)
   const newReference = () =>
     `PL-${cartStore.id.slice(0, 6).toUpperCase()}-${Date.now().toString().slice(-6)}`
 
@@ -272,7 +283,9 @@ export default function Checkout() {
               says they have paid. The other methods settle on delivery. */}
           <button
             type="button"
+            disabled={shut}
             onClick={() => {
+              if (shut) return
               // An order belongs to someone: no account, no checkout.
               if (!user) {
                 openAuth('login')
@@ -284,9 +297,11 @@ export default function Checkout() {
               }
               confirm()
             }}
-            className="btn-primary w-full rounded-full py-3"
+            className="btn-primary w-full rounded-full py-3 disabled:opacity-50"
           >
-            {!user
+            {shut
+              ? `${cartStore.name} is closed`
+              : !user
               ? 'Log in to place this order'
               : payment === 'aba'
                 ? 'Pay with ABA'

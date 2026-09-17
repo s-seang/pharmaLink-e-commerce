@@ -5,6 +5,7 @@ import Account from './pages/Account'
 import Carts from './pages/Carts'
 import Checkout from './pages/Checkout'
 import Discounts from './pages/Discounts'
+import Favourites from './pages/Favourites'
 import Home from './pages/Home'
 import Orders from './pages/Orders'
 import Receipt from './pages/Receipt'
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/store/:id" element={<StorePage />} />
           <Route path="/stores" element={<Stores />} />
           <Route path="/discounts" element={<Discounts />} />
+          <Route path="/favourites" element={<Favourites />} />
           <Route path="/account" element={<Account />} />
           <Route path="/carts" element={<Carts />} />
           <Route path="/checkout" element={<Checkout />} />

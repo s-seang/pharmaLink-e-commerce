@@ -1,64 +1,47 @@
+import collagenSale from '../assets/image1.png'
+import vegansSale from '../assets/image2.png'
+import vitaminC from '../assets/image3.png'
+import dermaCo from '../assets/image4.png'
+import cosmeticsSale from '../assets/image5.png'
+
 export interface Banner {
   id: string
-  headline: string
-  subline: string
-  cta: string
+  /** The banner is the artwork — there is no drawn version underneath it. */
+  image: string
+  /** What the artwork says, for anyone who cannot see it. */
+  alt: string
   to: string
-  /** Background, foreground text and decorative accent. */
-  background: string
-  foreground: string
-  accent: string
 }
 
 export const banners: Banner[] = [
   {
-    id: 'delivery',
-    headline: 'Free delivery over $20',
-    subline: 'Across Phnom Penh, same day',
-    cta: 'Shop now',
-    to: '/search',
-    background: '#1F4466',
-    foreground: '#FFFFFF',
-    accent: '#4A9A96',
-  },
-  {
-    id: 'skincare-sale',
-    headline: 'Up to 30% off skincare',
-    subline: 'Sunscreen, serums and cleansers',
-    cta: 'See discounts',
-    to: '/discounts',
-    background: '#4A9A96',
-    foreground: '#FFFFFF',
-    accent: '#EAF1F7',
-  },
-  {
-    id: 'consultation',
-    headline: 'Talk to a pharmacist',
-    subline: 'Free consultation, seven days a week',
-    cta: 'Find a pharmacy',
-    to: '/stores',
-    background: '#EAF1F7',
-    foreground: '#1F4466',
-    accent: '#2B5C8A',
-  },
-  {
-    id: 'supplements',
-    headline: 'Daily vitamins, delivered',
-    subline: 'Immune, bone and gut support',
-    cta: 'Browse supplements',
+    id: 'collagen-sale',
+    image: collagenSale,
+    alt: 'Pay day sale — flat 10% plus an extra 5% off beauty protein collagen',
     to: '/search?category=Supplement',
-    background: '#2B5C8A',
-    foreground: '#FFFFFF',
-    accent: '#4A9A96',
   },
   {
-    id: 'equipment',
-    headline: 'Home health equipment',
-    subline: 'Monitors, nebulisers and first aid',
-    cta: 'Shop equipment',
-    to: '/search?category=Medical%20Equipment',
-    background: '#E4F0EF',
-    foreground: '#1F4466',
-    accent: '#4A9A96',
+    id: 'vegans-sale',
+    image: vegansSale,
+    alt: 'Extra 30% off everything, applied at checkout',
+    to: '/discounts',
+  },
+  {
+    id: 'vitamin-c',
+    image: vitaminC,
+    alt: 'Best seller — glow boosting vitamin C with glutathione',
+    to: '/search?category=Cosmetic',
+  },
+  {
+    id: 'derma-co',
+    image: dermaCo,
+    alt: 'Sale is live — buy one get one free across skincare',
+    to: '/discounts',
+  },
+  {
+    id: 'cosmetics-sale',
+    image: cosmeticsSale,
+    alt: 'Premium cosmetics — 40% off',
+    to: '/search?category=Cosmetic',
   },
 ]

@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
-import { ProductCard } from '../components/ProductCard'
+import { DealCard } from '../components/DealCard'
 import { CATEGORIES, discountedProducts, finalPrice, storeRating, type Category } from '../data'
 
 type SortKey = 'discount' | 'price' | 'rating'
@@ -85,9 +85,9 @@ export default function Discounts() {
             No discounts in {category} right now.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {items.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <DealCard key={product.id} product={product} />
             ))}
           </div>
         )}

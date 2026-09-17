@@ -44,14 +44,14 @@ export function OrderPlaced({
       aria-modal="true"
       aria-label="Order placed"
     >
-      <div className="app-container flex min-h-full max-w-sm flex-col justify-center py-10">
+      <div className="app-container flex min-h-full max-w-sm flex-col justify-center py-5">
         <TicketReceipt order={order} store={store} reference={reference} />
 
         {/* Waiting it out is the default, not a requirement. */}
         <button
           type="button"
           onClick={onDone}
-          className="mx-auto mt-8 block rounded-lg px-3 py-1.5 text-center text-xs text-muted transition-colors hover:bg-white hover:text-navy"
+          className="mx-auto mt-5 block rounded-lg px-3 py-1.5 text-center text-xs text-muted transition-colors hover:bg-white hover:text-navy"
         >
           <span aria-live="polite">Opening order tracking in {Math.max(left, 0)}s</span>
           <span className="ml-1 font-semibold text-navy">· Track now</span>

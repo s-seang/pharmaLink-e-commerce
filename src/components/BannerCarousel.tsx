@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { banners } from '../data/banners'
 
 /**
- * Promotional banners. Deliberately manual — it never scrolls on its own. The
- * bar underneath is a scroll position indicator, not a set of dots: its thumb
- * is one banner wide and slides as you swipe.
+ * The supplied promotional artwork. Deliberately manual — it never scrolls on
+ * its own. The bar underneath is a scroll position indicator, not a set of
+ * dots: its thumb is one banner wide and slides as you swipe.
  *
  * The rail stays inside the page gutter rather than bleeding to the screen
  * edge, so a banner lines up with the sections above and below it. One banner
@@ -53,30 +53,15 @@ export function BannerCarousel() {
           <Link
             key={banner.id}
             to={banner.to}
-            className="relative w-full shrink-0 snap-start overflow-hidden rounded-card sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]"
-            style={{ backgroundColor: banner.background, color: banner.foreground }}
+            className="w-full shrink-0 snap-start overflow-hidden rounded-card border border-line bg-white sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]"
           >
-            {/* Decorative shapes, so the banner reads as artwork rather than a block. */}
-            <svg
-              className="pointer-events-none absolute inset-y-0 right-0 h-full"
-              viewBox="0 0 160 120"
-              preserveAspectRatio="xMaxYMid slice"
-              aria-hidden="true"
-            >
-              <circle cx="130" cy="30" r="52" fill={banner.accent} opacity="0.35" />
-              <circle cx="150" cy="96" r="34" fill={banner.accent} opacity="0.55" />
-            </svg>
-
-            <div className="relative flex aspect-[16/7] flex-col justify-center gap-1 p-5">
-              <p className="text-base font-bold leading-snug sm:text-lg">{banner.headline}</p>
-              <p className="text-xs opacity-80">{banner.subline}</p>
-              <span
-                className="mt-2 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: banner.foreground, color: banner.background }}
-              >
-                {banner.cta}
-              </span>
-            </div>
+            {/* Contained rather than cropped: these are marketing creatives, and
+                a cover crop would cut the wording off the wide ones. */}
+            <img
+              src={banner.image}
+              alt={banner.alt}
+              className="aspect-[2/1] w-full object-contain"
+            />
           </Link>
         ))}
       </div>

@@ -12,7 +12,7 @@ import {
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { StoreChatSheet } from '../components/StoreChatSheet'
-import { ProductCard } from '../components/ProductCard'
+import { StoreProductRow } from '../components/StoreProductRow'
 import { StoreFabs } from '../components/StoreFabs'
 import { Layout } from '../components/Layout'
 import { OpenBadge } from '../components/OpenBadge'
@@ -31,18 +31,12 @@ import { useApp } from '../context/AppContext'
 import { directionsUrl } from '../lib/geo'
 
 /**
- * How a shut pharmacy explains itself. A shop closed off-schedule has no hour
- * to promise, so it says so plainly and quotes the hours it normally keeps
- * rather than claiming a time it cannot meet.
+ * When the counter opens again, in as few words as it takes. The shop's name
+ * is already at the top of its own page, so the line does not repeat it.
  */
-function shutCopy(store: Store, now: Date): { heading: string; hours: string } {
+function shutHeadline(store: Store, now: Date): string {
   const opensAt = nextOpening(store, now)
-  return opensAt
-    ? { heading: `${store.name} is shut until ${opensAt}`, hours: '' }
-    : {
-        heading: `${store.name} is closed for the day`,
-        hours: ` It normally opens ${store.hours.label}.`,
-      }
+  return opensAt ? `Closed until ${opensAt}` : 'Closed today'
 }
 
 export default function StorePage() {
@@ -51,7 +45,6 @@ export default function StorePage() {
   const store = getStore(id)
   const [filter, setFilter] = useState<Category | 'All'>('All')
   const [chatOpen, setChatOpen] = useState(false)
-  const [laterOrder, setLaterOrder] = useState(false)
   /** Shown once on arrival; the banner below carries the point from then on. */
   const [closedNotice, setClosedNotice] = useState(true)
   const { now } = useApp()
@@ -90,7 +83,7 @@ export default function StorePage() {
     store.description
 
   const shut = !isOpenNow(store, now)
-  const { heading: shutHeading, hours: shutHours } = shutCopy(store, now)
+  const shutHeading = shutHeadline(store, now)
 
   const countFor = (category: Category | 'All') =>
     category === 'All'
@@ -133,35 +126,6 @@ export default function StorePage() {
           </a>
         </div>
       </div>
-
-      {shut && (
-        <div className="app-container pt-4">
-          <section className="card flex flex-col gap-3 border-star/40 bg-star/5 p-4 sm:flex-row sm:items-center">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-star/15 text-star">
-              <Clock size={18} />
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink">{shutHeading}</p>
-              <p className="mt-0.5 text-xs text-muted">
-                {laterOrder
-                  ? 'Saved for later — add what you need and the pharmacy will prepare it when it opens.'
-                  : `Order now and they will prepare it when they open.${shutHours}`}
-              </p>
-            </div>
-
-            {!laterOrder && (
-              <button
-                type="button"
-                onClick={() => setLaterOrder(true)}
-                className="btn-primary shrink-0 sm:w-auto"
-              >
-                Order for later
-              </button>
-            )}
-          </section>
-        </div>
-      )}
 
       <div className="app-container space-y-7 py-5">
         {hasAbout && (
@@ -244,9 +208,9 @@ export default function StorePage() {
               This pharmacy has no {filter.toLowerCase()} products listed yet.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
+            <div className="card divide-y divide-line px-4">
               {visible.map((product) => (
-                <ProductCard key={product.id} product={product} action="none" />
+                <StoreProductRow key={product.id} product={product} />
               ))}
             </div>
           )}
@@ -275,24 +239,22 @@ export default function StorePage() {
             <h2 id="shut-title" className="text-lg font-bold leading-snug text-ink">
               {shutHeading}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Order now and they will prepare it when they open.
-            </p>
 
             <button
               type="button"
-              onClick={() => {
-                setClosedNotice(false)
-                setLaterOrder(true)
-              }}
+              onClick={() => setClosedNotice(false)}
               className="btn-primary mt-5 w-full"
             >
               Order for later
             </button>
 
-            <Link to="/stores" className="btn-outline mt-2 w-full">
+            <button
+              type="button"
+              onClick={() => navigate('/stores', { replace: true })}
+              className="btn-outline mt-2 w-full"
+            >
               Find one that is open
-            </Link>
+            </button>
           </div>
         </div>
       )}

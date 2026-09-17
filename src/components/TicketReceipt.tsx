@@ -32,17 +32,17 @@ export function TicketReceipt({
 
   return (
     <div className="relative mx-auto w-full max-w-sm rounded-3xl bg-white shadow-[0_18px_48px_-24px_rgba(31,68,102,0.45)]">
-      <div className="px-7 pb-8 pt-9 text-center">
+      <div className="px-6 pb-5 pt-6 text-center">
         <SuccessTick />
-        <h2 className="mt-4 text-2xl font-bold text-ink">Thank you!</h2>
-        <p className="mx-auto mt-1.5 max-w-[15rem] text-sm leading-relaxed text-muted">
+        <h2 className="mt-2.5 text-xl font-bold text-ink">Thank you!</h2>
+        <p className="mx-auto mt-1 max-w-[16rem] text-xs leading-relaxed text-muted">
           Your order has been placed successfully
         </p>
       </div>
 
       <Perforation />
 
-      <div className="space-y-5 px-7 py-7">
+      <div className="space-y-3 px-6 py-4">
         <div className="flex items-start justify-between gap-4">
           <Field label="Order ID" value={order.id} />
           <Field label="Amount" value={formatPrice(order.total)} align="right" />
@@ -51,7 +51,7 @@ export function TicketReceipt({
         <Field label="Date & time" value={formatPlaced(order.placedOn)} />
         <Field label="Pharmacy" value={`${store.name} · ${store.branch}`} />
 
-        <ul className="space-y-2 border-t border-dashed border-line pt-4">
+        <ul className="space-y-1.5 border-t border-dashed border-line pt-3">
           {order.lines.map((line) => {
             const product = getProduct(line.productId)
             return (
@@ -75,8 +75,8 @@ export function TicketReceipt({
           })}
         </ul>
 
-        <div className="flex items-center gap-3 rounded-2xl bg-surface p-3.5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-navy">
+        <div className="flex items-center gap-3 rounded-xl bg-surface p-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-navy">
             <PaidIcon size={20} />
           </span>
           <span className="min-w-0">
@@ -90,7 +90,7 @@ export function TicketReceipt({
 
       <Perforation />
 
-      <div className="px-7 pb-9 pt-7">
+      <div className="px-6 pb-6 pt-4">
         <Barcode seed={reference ?? order.id} />
       </div>
 
@@ -104,7 +104,7 @@ function SuccessTick() {
   return (
     <svg
       viewBox="0 0 52 52"
-      className="tick mx-auto h-16 w-16"
+      className="tick mx-auto h-12 w-12"
       role="img"
       aria-label="Order confirmed"
     >
@@ -178,7 +178,7 @@ function Barcode({ seed }: { seed: string }) {
 
   return (
     <div>
-      <div className="flex h-16 justify-center" aria-hidden="true">
+      <div className="flex h-12 justify-center" aria-hidden="true">
         {bars.map((value, index) => (
           <span
             key={index}
@@ -190,7 +190,7 @@ function Barcode({ seed }: { seed: string }) {
           />
         ))}
       </div>
-      <p className="mt-2 text-center text-xs tracking-[0.3em] text-muted">
+      <p className="mt-1.5 text-center text-[11px] tracking-[0.25em] text-muted">
         {seed.replace(/\D/g, '') || seed}
       </p>
     </div>

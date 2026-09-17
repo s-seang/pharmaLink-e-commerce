@@ -198,6 +198,12 @@ export interface Product {
    * prices — there is no stock system behind this app.
    */
   soldOut?: PackagingKind[]
+  /**
+   * A photograph of the actual product — a file under `src/assets` or a URL
+   * the shop owns the rights to. Left unset, the card falls back to the drawn
+   * artwork, which is why the catalogue works with no images at all.
+   */
+  imageUrl?: string
   /** Seed for the generated placeholder artwork. */
   imageSeed: number
 }

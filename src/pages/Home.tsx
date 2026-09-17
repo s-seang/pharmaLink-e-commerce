@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { BannerCarousel } from '../components/BannerCarousel'
 import { DiscountGrid } from '../components/DiscountGrid'
 import { OfferRail } from '../components/OfferRail'
+import { TopStores } from '../components/TopStores'
 import { FilterSelect, type FilterOption } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { OrderAgainRow } from '../components/OrderAgainRow'
@@ -155,6 +156,8 @@ export default function Home() {
         </section>
 
         <OfferRail />
+
+        <TopStores />
 
         <section className="rounded-card bg-surface p-4">
           <SectionHeader

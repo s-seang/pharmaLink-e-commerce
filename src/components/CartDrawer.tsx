@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   ChevronDown,
+  Clock,
   ChevronRight,
   Minus,
   Plus,
@@ -11,7 +12,7 @@ import {
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { formatPrice, getProduct, type CartLine, type Product } from '../data'
+import { formatPrice, getProduct, isOpenNow, nextOpening, type CartLine, type Product } from '../data'
 import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
 import { optionTags } from '../lib/itemTypes'
 import { useVariantBasket } from '../hooks/useVariantBasket'
@@ -34,9 +35,12 @@ export function CartDrawer() {
     clearStoreCart,
     user,
     openAuth,
+    now,
   } = useApp()
   const navigate = useNavigate()
   const [editing, setEditing] = useState<string | null>(null)
+  /** Set when checkout was refused, so the reason is on screen. */
+  const [blocked, setBlocked] = useState('')
 
   // Worked out before the early return below, so the hook runs every render.
   const editingItem = cartLines.find((item) => item.lineId === editing)
@@ -248,9 +252,30 @@ export function CartDrawer() {
             <div className="border-t border-line bg-white p-4">
               {/* The order is placed on /checkout, where the address, delivery
                   option and payment method are settled. */}
+              {blocked && (
+                <p
+                  role="alert"
+                  className="mb-3 flex items-start gap-2 rounded-lg border-l-4 border-star bg-star/10 p-3 text-xs font-semibold text-star"
+                >
+                  <Clock size={15} className="mt-px shrink-0" />
+                  {blocked}
+                </p>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
+                  // A shut pharmacy cannot take the order. The basket keeps,
+                  // so this is a wait rather than a dead end.
+                  if (cartStore && !isOpenNow(cartStore, now)) {
+                    const opensAt = nextOpening(cartStore, now)
+                    setBlocked(
+                      opensAt
+                        ? `${cartStore.name} is closed. You can pay for this order from ${opensAt}.`
+                        : `${cartStore.name} is closed today. Your basket keeps until it opens.`,
+                    )
+                    return
+                  }
                   // An order belongs to someone: ask before the payment step,
                   // not after the address and card have been filled in.
                   if (!user) {

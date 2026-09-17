@@ -33,10 +33,10 @@ export default function Receipt() {
     <Layout header="none" floatingCart={false} background="tint">
       <ReceiptBar />
 
-      <div className="app-container max-w-sm py-8">
+      <div className="app-container max-w-sm py-4">
         <TicketReceipt order={order} store={store} />
 
-        <Link to={`/order/${order.id}/tracking`} className="btn-primary mt-8 w-full">
+        <Link to={`/order/${order.id}/tracking`} className="btn-primary mt-5 w-full">
           <Truck size={18} />
           Track order
         </Link>
