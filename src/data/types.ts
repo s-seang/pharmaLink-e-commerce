@@ -188,6 +188,11 @@ export interface Product {
   itemCategory?: ItemCategory
   unitType?: string
   /**
+   * The forms this product is actually sold in, where its unit cannot say —
+   * an inhaler and a tube of ointment are both bought whole.
+   */
+  unitTypes?: string[]
+  /**
    * Forms this shop has run out of. They still show in the variant list, so a
    * shopper can see the shop stocks them, but cannot be picked. Mock, like the
    * prices — there is no stock system behind this app.

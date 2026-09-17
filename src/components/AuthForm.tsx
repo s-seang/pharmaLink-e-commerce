@@ -1,27 +1,30 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useApp, type AuthTab } from '../context/AppContext'
 
 /**
- * Logging in and signing up, as one form with two tabs.
+ * Logging in and signing up.
  *
- * Lives on its own so the account page and the in-flow prompt are the same
- * form rather than two that drift apart — the page wraps it in the profile
- * shell, the modal in a dialog.
+ * Controlled from outside so the screen around it can title itself — the two
+ * are one flow with one heading, not a form with a tab strip on top.
  */
 export function AuthForm({
-  initialTab = 'login',
+  tab,
+  onTab,
   onDone,
 }: {
-  initialTab?: AuthTab
+  tab: AuthTab
+  onTab: (tab: AuthTab) => void
   onDone?: () => void
 }) {
   const { login } = useApp()
-  const [tab, setTab] = useState<AuthTab>(initialTab)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [contact, setContact] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [fullName, setFullName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,77 +33,85 @@ export function AuthForm({
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (!contact.trim() || !password) {
-      setError('Enter your phone or email and a password.')
+      setError('Enter your email and a password.')
       return
     }
     if (isSignup && password !== confirm) {
       setError('The two passwords do not match.')
       return
     }
-    login(contact, isSignup ? fullName : undefined)
+    login(contact, isSignup ? `${firstName} ${lastName}`.trim() : undefined, phone)
     onDone?.()
   }
 
   const swap = (next: AuthTab) => {
-    setTab(next)
+    onTab(next)
     setError('')
   }
 
   return (
     <>
-      <div className="mb-5 grid grid-cols-2 rounded-lg bg-surface p-1">
-        {(['login', 'signup'] as AuthTab[]).map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => swap(value)}
-            className={`rounded-md py-2 text-sm font-semibold transition-colors ${
-              tab === value ? 'bg-white text-navy shadow-sm' : 'text-muted'
-            }`}
-            aria-pressed={tab === value}
-          >
-            {value === 'login' ? 'Log in' : 'Sign up'}
-          </button>
-        ))}
-      </div>
-
-      <form onSubmit={submit} className="space-y-3">
+      <form onSubmit={submit} className="space-y-4">
         {isSignup && (
-          <Field label="Full name">
-            <input
-              className="input"
-              value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
-              placeholder="Sok Chanthy"
-              autoComplete="name"
-            />
-          </Field>
+          <div className="flex gap-3">
+            <Field label="First Name" className="flex-1">
+              <input
+                className="pill-input"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                placeholder="First Name"
+                autoComplete="given-name"
+              />
+            </Field>
+            <Field label="Last Name" className="flex-1">
+              <input
+                className="pill-input"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                placeholder="Last Name"
+                autoComplete="family-name"
+              />
+            </Field>
+          </div>
         )}
 
-        <Field label="Phone or email">
+        <Field label="Email Address">
           <input
-            className="input"
+            className="pill-input"
             value={contact}
             onChange={(event) => setContact(event.target.value)}
-            placeholder="012 345 678 or you@email.com"
+            placeholder="Enter Email Address"
             autoComplete="username"
           />
         </Field>
 
+        {isSignup && (
+          <Field label="Phone Number">
+            <input
+              className="pill-input"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="Enter Your Phone Number"
+              inputMode="tel"
+              autoComplete="tel"
+            />
+          </Field>
+        )}
+
         <Field label="Password">
           <div className="relative">
             <input
-              className="input pr-10"
+              className="pill-input pr-12"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter Your Password"
               autoComplete={isSignup ? 'new-password' : 'current-password'}
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted hover:text-ink"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -109,13 +120,13 @@ export function AuthForm({
         </Field>
 
         {isSignup && (
-          <Field label="Confirm password">
+          <Field label="Confirm Password">
             <input
-              className="input"
+              className="pill-input"
               type={showPassword ? 'text' : 'password'}
               value={confirm}
               onChange={(event) => setConfirm(event.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter Your Confirm Password"
               autoComplete="new-password"
             />
           </Field>
@@ -123,57 +134,102 @@ export function AuthForm({
 
         {!isSignup && (
           <div className="flex justify-end">
-            <button type="button" className="text-xs font-medium text-navy hover:underline">
-              Forgot password?
+            <button type="button" className="text-xs font-semibold text-navy hover:underline">
+              Forget Password?
             </button>
           </div>
         )}
 
         {error && <p className="text-xs font-medium text-sale">{error}</p>}
 
-        <button type="submit" className="btn-primary w-full">
-          {isSignup ? 'Create account' : 'Log in'}
+        <button
+          type="submit"
+          className="w-full rounded-full bg-navy-deep py-4 text-sm font-bold text-white transition-colors hover:bg-navy"
+        >
+          {isSignup ? 'Sign Up' : 'Sign In'}
         </button>
       </form>
 
-      <div className="my-4 flex items-center gap-3 text-xs text-muted">
-        <span className="h-px flex-1 bg-line" />
-        or
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      {isSignup ? (
+        <p className="mt-5 text-xs leading-relaxed text-muted">
+          By signing up, you agree to the{' '}
+          <Link to="/policy/terms" className="font-semibold text-navy hover:underline">
+            Terms Of Use
+          </Link>{' '}
+          and{' '}
+          <Link to="/policy/privacy" className="font-semibold text-navy hover:underline">
+            Privacy Notice
+          </Link>
+          .
+        </p>
+      ) : (
+        <>
+          <div className="my-5 flex items-center gap-3 text-xs text-muted">
+            <span className="h-px flex-1 bg-line" />
+            Or
+            <span className="h-px flex-1 bg-line" />
+          </div>
 
-      <button
-        type="button"
-        onClick={() => {
-          login(contact || 'google.user@gmail.com', fullName || undefined)
-          onDone?.()
-        }}
-        className="btn-outline w-full"
-      >
-        <GoogleMark />
-        Continue with Google
-      </button>
+          <div className="flex gap-3">
+            <SocialButton label="Google" onClick={() => login('google.user@gmail.com')}>
+              <GoogleMark />
+            </SocialButton>
+            <SocialButton label="Facebook" onClick={() => login('facebook.user@mail.com')}>
+              <FacebookMark />
+            </SocialButton>
+          </div>
+        </>
+      )}
 
-      <p className="mt-4 text-center text-xs text-muted">
-        {isSignup ? 'Already have an account? ' : 'New to PharmaLink? '}
+      <p className="mt-6 text-center text-xs text-muted">
+        {isSignup ? 'Already Have An Account? ' : "Don't Have An Account? "}
         <button
           type="button"
-          className="font-semibold text-navy hover:underline"
+          className="font-bold text-navy hover:underline"
           onClick={() => swap(isSignup ? 'login' : 'signup')}
         >
-          {isSignup ? 'Log in' : 'Sign up'}
+          {isSignup ? 'Sign In' : 'Sign Up'}
         </button>
       </p>
     </>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  className = '',
+}: {
+  label: string
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-muted">{label}</span>
+    <label className={`block ${className}`}>
+      <span className="mb-1.5 block text-xs font-semibold text-ink">{label}</span>
       {children}
     </label>
+  )
+}
+
+function SocialButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line bg-white py-3 text-sm font-semibold text-ink shadow-sm transition-colors hover:border-navy"
+    >
+      {children}
+      {label}
+    </button>
   )
 }
 
@@ -196,6 +252,14 @@ function GoogleMark() {
         fill="#34A853"
         d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-3.8-13.6-9.1l-7.8 6.1C6.5 42.6 14.6 48 24 48Z"
       />
+    </svg>
+  )
+}
+
+function FacebookMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#1877F2">
+      <path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.6 4.5-4.6 1.3 0 2.6.2 2.6.2v2.9h-1.5c-1.5 0-1.9.9-1.9 1.8V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12Z" />
     </svg>
   )
 }

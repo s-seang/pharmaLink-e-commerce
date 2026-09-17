@@ -95,15 +95,6 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
         label: 'Sample',
         short: 'Sample',
       },
-      {
-        kind: 'custom',
-        min: 1,
-        max: size * 4,
-        suggested: size,
-        label: 'Custom amount',
-        short: 'Custom',
-        note: `Any amount in ${unit}`,
-      },
     ]
   }
 
@@ -124,26 +115,15 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
     })
   }
 
-  options.push(
-    {
-      kind: 'loose',
-      min: 1,
-      max: Math.max(1, Math.floor(size / 2)),
-      suggested: Math.min(5, size),
-      label: `Loose ${unitLabel(unit, 2)} / Sample`,
-      short: 'Loose',
-      note: 'Counted out for you',
-    },
-    {
-      kind: 'custom',
-      min: 1,
-      max: size * 4,
-      suggested: size,
-      label: 'Custom amount',
-      short: 'Custom',
-      note: `Any number of ${unitLabel(unit, 2)}`,
-    },
-  )
+  options.push({
+    kind: 'loose',
+    min: 1,
+    max: size * 4,
+    suggested: Math.min(5, size),
+    label: `Loose ${unitLabel(unit, 2)}`,
+    short: 'Loose',
+    note: 'Counted out for you — say how many',
+  })
 
   return options
 }
@@ -194,17 +174,24 @@ export interface Variant {
  * the product page, not one of the shop's own listed forms.
  */
 export function variantsFor(product: Product, size = product.packSize): Variant[] {
+  // Two forms can land on the same amount — a five-piece pack counted out
+  // loose is the pack. The first one listed wins; a repeat is just noise.
+  const seen = new Set<number>()
+
   return packagingFor(product, size)
     .filter((option) => option.kind !== 'custom')
-    .map((option) => {
+    .flatMap((option) => {
       const units = option.units ?? option.suggested ?? option.min ?? 1
-      return {
+      if (seen.has(units)) return []
+      seen.add(units)
+
+      return [{
         kind: option.kind,
         units,
         label: `${option.short} · ${units} ${unitLabel(product.unit, units)}`,
         price: roundMoney(itemPrice(product, units)),
         soldOut: product.soldOut?.includes(option.kind) ?? false,
-      }
+      }]
     })
 }
 

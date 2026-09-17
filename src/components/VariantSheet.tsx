@@ -1,7 +1,43 @@
-import { Check } from 'lucide-react'
+import { Check, Minus, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { formatPrice, type CartLine, type Product } from '../data'
 import { variantsFor, type Variant } from '../lib/packaging'
+
+/** How many of one variant to put in the basket, without leaving the sheet. */
+function Stepper({
+  count,
+  onChange,
+  label,
+}: {
+  count: number
+  onChange: (count: number) => void
+  label: string
+}) {
+  return (
+    <span className="flex shrink-0 items-center rounded-full border border-line">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, count - 1))}
+        disabled={count === 0}
+        aria-label={`One fewer ${label}`}
+        className="p-2 text-muted transition-colors hover:text-navy disabled:opacity-30"
+      >
+        <Minus size={15} />
+      </button>
+      <span className="w-6 text-center text-sm font-bold text-ink" aria-live="polite">
+        {count}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(count + 1)}
+        aria-label={`One more ${label}`}
+        className="p-2 text-muted transition-colors hover:text-navy"
+      >
+        <Plus size={15} />
+      </button>
+    </span>
+  )
+}
 
 /** Drag past this and letting go dismisses the sheet rather than springing back. */
 const DISMISS_AFTER = 90
@@ -19,13 +55,19 @@ export function VariantSheet({
   product,
   onChoose,
   onClose,
+  quantities,
+  onQuantity,
 }: {
-  line: CartLine
+  /** The line being changed. Absent when picking a variant to add. */
+  line?: CartLine
   product: Product
   onChoose: (variant: Variant) => void
   onClose: () => void
+  /** How many of each variant are in the basket, and how to change that. */
+  quantities?: (variant: Variant) => number
+  onQuantity?: (variant: Variant, quantity: number) => void
 }) {
-  const variants = variantsFor(product, line.size)
+  const variants = variantsFor(product, line?.size)
 
   // How far the sheet has been dragged down, in pixels. Null while it is at
   // rest, so the spring-back transition only runs after a real drag.
@@ -91,27 +133,38 @@ export function VariantSheet({
           className="flex-1 overflow-y-auto border-t border-line"
         >
           {variants.map((variant) => {
-            const chosen = variant.kind === line.packaging && variant.units === line.units
+            const chosen = line
+              ? variant.kind === line.packaging && variant.units === line.units
+              : false
+            const count = quantities?.(variant) ?? 0
+            // The stepper is part of the row, so the row carries the highlight.
+            const active = chosen || count > 0
+
             return (
-              <li key={`${variant.kind}-${variant.units}`}>
+              <li
+                key={`${variant.kind}-${variant.units}`}
+                className={`flex items-center pr-3 transition-colors ${
+                  variant.soldOut
+                    ? 'opacity-50'
+                    : active
+                      ? 'bg-navy-tint/60'
+                      : 'hover:bg-surface'
+                }`}
+              >
                 <button
                   type="button"
                   role="option"
                   aria-selected={chosen}
                   disabled={variant.soldOut}
                   onClick={() => onChoose(variant)}
-                  className={`flex min-h-[56px] w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors ${
-                    variant.soldOut
-                      ? 'cursor-not-allowed opacity-50'
-                      : chosen
-                        ? 'bg-navy-tint/60'
-                        : 'hover:bg-surface active:bg-surface'
+                  className={`flex min-h-[56px] flex-1 items-center justify-between gap-3 px-4 py-3 text-left ${
+                    variant.soldOut ? 'cursor-not-allowed' : ''
                   }`}
                 >
                   <span className="min-w-0">
                     <span
                       className={`block truncate text-sm ${
-                        chosen ? 'font-semibold text-navy' : 'font-medium text-ink'
+                        active ? 'font-semibold text-navy' : 'font-medium text-ink'
                       }`}
                     >
                       {variant.label}
@@ -125,9 +178,17 @@ export function VariantSheet({
                     <span className="text-sm font-bold text-navy">
                       {formatPrice(variant.price)}
                     </span>
-                    {chosen && <Check size={18} className="text-navy" />}
+                    {chosen && !quantities && <Check size={18} className="text-navy" />}
                   </span>
                 </button>
+
+                {quantities && onQuantity && !variant.soldOut && (
+                  <Stepper
+                    count={count}
+                    onChange={(next) => onQuantity(variant, next)}
+                    label={variant.label}
+                  />
+                )}
               </li>
             )
           })}

@@ -2,7 +2,9 @@ import { ChevronDown, Minus, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import type { Product } from '../data'
-import { variantsFor } from '../lib/packaging'
+import { defaultUnitType, itemCategoryFor } from '../lib/itemTypes'
+import { variantsFor, type Variant } from '../lib/packaging'
+import { useVariantBasket } from '../hooks/useVariantBasket'
 import { VariantSheet } from './VariantSheet'
 
 /** How long the stepper stays open before folding back to the count. */
@@ -35,7 +37,8 @@ const OPEN_WIDTH_WITH_VARIANTS = 128
  * two controls swapping places.
  */
 export function CartStepper({ product }: { product: Product }) {
-  const { addToCart, defaultLine, setQuantity, removeFromCart, setVariant } = useApp()
+  const { addToCart, addConfigured, defaultLine, removeFromCart, setQuantity, setVariant } =
+    useApp()
   // Only the whole-pack line: a part-pack configured on the product page is not
   // something a `+` in a grid should be quietly changing.
   const line = defaultLine(product.id)
@@ -43,6 +46,7 @@ export function CartStepper({ product }: { product: Product }) {
 
   const [open, setOpen] = useState(false)
   const [sheet, setSheet] = useState(false)
+  const { quantityOf, setQuantityOf } = useVariantBasket(product, line)
   const timer = useRef<number | undefined>(undefined)
 
   // Only worth a caret where the shop lists the product more than one way.
@@ -56,8 +60,32 @@ export function CartStepper({ product }: { product: Product }) {
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
+  /**
+   * Nothing goes in until the shopper has said which form they want. A shelf
+   * with one form has nothing to ask, so it adds straight away.
+   */
   const add = () => {
+    if (!line && multiVariant) {
+      setSheet(true)
+      return
+    }
     addToCart(product.id)
+    openFor()
+  }
+
+  const chooseVariant = (variant: Variant) => {
+    if (line) setVariant(line.lineId, variant)
+    else
+      addConfigured({
+        productId: product.id,
+        quantity: 1,
+        packaging: variant.kind,
+        units: variant.units,
+        price: variant.price,
+        itemCategory: itemCategoryFor(product),
+        unitType: defaultUnitType(product),
+      })
+    setSheet(false)
     openFor()
   }
 
@@ -163,15 +191,14 @@ export function CartStepper({ product }: { product: Product }) {
       </button>
     </div>
 
-    {sheet && line && (
+    {sheet && (
       <VariantSheet
         line={line}
         product={product}
-        onChoose={(variant) => {
-          setVariant(line.lineId, variant)
-          setSheet(false)
-        }}
+        onChoose={chooseVariant}
         onClose={() => setSheet(false)}
+        quantities={quantityOf}
+        onQuantity={setQuantityOf}
       />
     )}
     </>

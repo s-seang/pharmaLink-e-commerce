@@ -14,6 +14,7 @@ import { useApp } from '../context/AppContext'
 import { formatPrice, getProduct, type CartLine, type Product } from '../data'
 import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
 import { optionTags } from '../lib/itemTypes'
+import { useVariantBasket } from '../hooks/useVariantBasket'
 import { VariantSheet } from './VariantSheet'
 import { describeAmount, itemListPrice, variantsFor } from '../lib/packaging'
 import { OpenBadge } from './OpenBadge'
@@ -31,9 +32,16 @@ export function CartDrawer() {
     setVariant,
     removeFromCart,
     clearStoreCart,
+    user,
+    openAuth,
   } = useApp()
   const navigate = useNavigate()
   const [editing, setEditing] = useState<string | null>(null)
+
+  // Worked out before the early return below, so the hook runs every render.
+  const editingItem = cartLines.find((item) => item.lineId === editing)
+  const editingProduct = getProduct(editingItem?.productId)
+  const { quantityOf, setQuantityOf } = useVariantBasket(editingProduct, editingItem)
 
   if (!cartOpen) return null
 
@@ -49,7 +57,6 @@ export function CartDrawer() {
     (sum, { item, product }) => sum + itemListPrice(product, item.units) * item.quantity,
     0,
   )
-  const editingLine = lines.find((line) => line.item.lineId === editing)
   const discount = subtotal - cartTotal
   const delivery = cartTotal >= FREE_DELIVERY_OVER ? 0 : STANDARD_FEE
   const total = cartTotal + delivery
@@ -244,12 +251,18 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={() => {
+                  // An order belongs to someone: ask before the payment step,
+                  // not after the address and card have been filled in.
+                  if (!user) {
+                    openAuth('login')
+                    return
+                  }
                   closeCart()
                   navigate('/checkout')
                 }}
                 className="btn-primary w-full rounded-full py-3"
               >
-                Proceed to payment — {formatPrice(total)}
+                {user ? 'Proceed to payment' : 'Log in to order'} — {formatPrice(total)}
                 <ArrowRight size={18} />
               </button>
             </div>
@@ -257,15 +270,17 @@ export function CartDrawer() {
         )}
       </aside>
 
-      {editingLine && (
+      {editingItem && editingProduct && (
         <VariantSheet
-          line={editingLine.item}
-          product={editingLine.product}
+          line={editingItem}
+          product={editingProduct}
           onChoose={(variant) => {
-            setVariant(editingLine.item.lineId, variant)
+            setVariant(editingItem.lineId, variant)
             setEditing(null)
           }}
           onClose={() => setEditing(null)}
+          quantities={quantityOf}
+          onQuantity={setQuantityOf}
         />
       )}
     </div>

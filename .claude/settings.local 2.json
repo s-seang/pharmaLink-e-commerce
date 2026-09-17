@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npm run *)",
+      "Bash(xargs -r kill)",
+      "Bash(npx tsc *)",
+      "Bash(ls -d \"/Applications/Google Chrome.app\" \"/Applications/Chromium.app\" \"/Applications/Microsoft Edge.app\" 2>/dev/null; which rsvg-convert magick convert python3 2>/dev/null; ls /Users/kimseangsam/Documents/pharmaLink/node_modules | grep -iE \"playwright|puppeteer|sharp|resvg\" 2>/dev/null)",
+      "Read(//Applications/Google Chrome.app/**)",
+      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --user-data-dir=/private/tmp/claude-501/-Users-kimseangsam-Documents-pharmaLink/8581e9eb-2e55-48ec-8f0d-08293741dfbf/scratchpad/chrome --window-size=430,1350 --virtual-time-budget=9000 --screenshot=/private/tmp/claude-501/-Users-kimseangsam-Documents-pharmaLink/8581e9eb-2e55-48ec-8f0d-08293741dfbf/scratchpad/tracking.png http://localhost:5174/__seed.html)",
+      "Bash(pkill -f \"8581e9eb-2e55-48ec-8f0d-08293741dfbf/scratchpad/chrome\")",
+      "Bash(python3 -)",
+      "Bash(echo \"exit=$?\")",
+      "Bash([ -f \"$SP/closed.png\" ])",
+      "Bash(python3 -c \"import PIL\")",
+      "Bash(cat)",
+      "Bash(node /tmp/alpha.cjs)",
+      "Bash(cp /tmp/alpha.cjs ./alpha.cjs)",
+      "Bash(node ./alpha.cjs)",
+      "Bash([ -f \"$SP/shut.png\" ])",
+      "Bash([ -f \"$SP/rows.png\" ])"
+    ]
+  }
+}

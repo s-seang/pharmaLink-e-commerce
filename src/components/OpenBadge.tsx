@@ -1,19 +1,25 @@
 import { useApp } from '../context/AppContext'
-import { isOpenNow, type Store } from '../data'
+import { isOpenNow, nextOpening, type Store } from '../data'
 
 export function OpenBadge({
   store,
   tone = 'default',
+  detail = false,
   className = '',
 }: {
   store: Store
   /** `light` is for the deep navy store band. */
   tone?: 'default' | 'light'
+  /** Say when it opens again. Only where the row has room for the extra words. */
+  detail?: boolean
   className?: string
 }) {
   const { now } = useApp()
   const open = isOpenNow(store, now)
   const light = tone === 'light'
+  const opensAt = nextOpening(store, now)
+
+  const shutLabel = detail ? (opensAt ? `Closed until ${opensAt}` : 'Closed today') : 'Closed'
 
   return (
     <span
@@ -27,7 +33,7 @@ export function OpenBadge({
         }`}
         aria-hidden="true"
       />
-      {open ? 'Open now' : 'Closed'}
+      {open ? 'Open now' : shutLabel}
     </span>
   )
 }

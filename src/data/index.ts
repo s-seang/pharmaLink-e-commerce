@@ -63,6 +63,26 @@ export function isOpenNow(store: Store, now = new Date()): boolean {
 }
 
 /**
+ * When a shut shop takes orders again — "07:00" later today, or "Fri, 07:00"
+ * once the day has turned over.
+ *
+ * Undefined for a shop closed off-schedule: there is no hour to promise, only
+ * the times it normally keeps.
+ */
+export function nextOpening(store: Store, now = new Date()): string | undefined {
+  if (store.temporarilyClosed) return undefined
+
+  const opens = new Date(now)
+  opens.setHours(store.hours.opensAt, 0, 0, 0)
+  if (opens <= now) opens.setDate(opens.getDate() + 1)
+
+  const time = `${String(store.hours.opensAt).padStart(2, '0')}:00`
+  return opens.getDate() === now.getDate()
+    ? time
+    : `${opens.toLocaleDateString(undefined, { weekday: 'short' })}, ${time}`
+}
+
+/**
  * Every word in the query has to appear somewhere in the product's text, so
  * "bio derma sleeping mask" still finds "Bioderma Hydrabio Sleeping Mask" —
  * and finds it at each store that lists it.

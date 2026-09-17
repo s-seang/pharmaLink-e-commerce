@@ -22,6 +22,7 @@ import {
   CATEGORIES,
   getStore,
   isOpenNow,
+  nextOpening,
   productsByStore,
   type Category,
   type Store,
@@ -30,12 +31,18 @@ import { useApp } from '../context/AppContext'
 import { directionsUrl } from '../lib/geo'
 
 /**
- * When a shut pharmacy takes orders again. A shop closed for the day has no
- * hour to quote, so it falls back to the hours it normally keeps.
+ * How a shut pharmacy explains itself. A shop closed off-schedule has no hour
+ * to promise, so it says so plainly and quotes the hours it normally keeps
+ * rather than claiming a time it cannot meet.
  */
-function reopensAt(store: Store): string {
-  if (store.temporarilyClosed) return `it reopens. Usual hours: ${store.hours.label}`
-  return `${String(store.hours.opensAt).padStart(2, '0')}:00`
+function shutCopy(store: Store, now: Date): { heading: string; hours: string } {
+  const opensAt = nextOpening(store, now)
+  return opensAt
+    ? { heading: `${store.name} is shut until ${opensAt}`, hours: '' }
+    : {
+        heading: `${store.name} is closed for the day`,
+        hours: ` It normally opens ${store.hours.label}.`,
+      }
 }
 
 export default function StorePage() {
@@ -45,6 +52,8 @@ export default function StorePage() {
   const [filter, setFilter] = useState<Category | 'All'>('All')
   const [chatOpen, setChatOpen] = useState(false)
   const [laterOrder, setLaterOrder] = useState(false)
+  /** Shown once on arrival; the banner below carries the point from then on. */
+  const [closedNotice, setClosedNotice] = useState(true)
   const { now } = useApp()
 
   const storeProducts = useMemo(() => (store ? productsByStore(store.id) : []), [store])
@@ -81,6 +90,7 @@ export default function StorePage() {
     store.description
 
   const shut = !isOpenNow(store, now)
+  const { heading: shutHeading, hours: shutHours } = shutCopy(store, now)
 
   const countFor = (category: Category | 'All') =>
     category === 'All'
@@ -132,13 +142,11 @@ export default function StorePage() {
             </span>
 
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink">
-                {store.name} is not available until {reopensAt(store)}
-              </p>
+              <p className="text-sm font-semibold text-ink">{shutHeading}</p>
               <p className="mt-0.5 text-xs text-muted">
                 {laterOrder
                   ? 'Saved for later — add what you need and the pharmacy will prepare it when it opens.'
-                  : 'You can still fill your cart now and have it prepared as soon as they open.'}
+                  : `Order now and they will prepare it when they open.${shutHours}`}
               </p>
             </div>
 
@@ -252,6 +260,42 @@ export default function StorePage() {
       />
 
       <StoreChatSheet store={store} open={chatOpen} onClose={() => setChatOpen(false)} />
+
+      {shut && closedNotice && (
+        <div
+          className="fixed inset-0 z-[65] flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shut-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setClosedNotice(false)
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+            <h2 id="shut-title" className="text-lg font-bold leading-snug text-ink">
+              {shutHeading}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Order now and they will prepare it when they open.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setClosedNotice(false)
+                setLaterOrder(true)
+              }}
+              className="btn-primary mt-5 w-full"
+            >
+              Order for later
+            </button>
+
+            <Link to="/stores" className="btn-outline mt-2 w-full">
+              Find one that is open
+            </Link>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }

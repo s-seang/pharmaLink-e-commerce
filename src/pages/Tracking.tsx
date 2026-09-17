@@ -57,7 +57,7 @@ export default function Tracking() {
     <Layout header="none" floatingCart={false}>
       <TrackingBar />
 
-      <div className="app-container max-w-md space-y-3 py-4">
+      <div className="app-container min-h-screen max-w-md space-y-3 py-4">
         <section className="card overflow-hidden">
           <div className="px-5 pt-5 text-center">
             <p className="text-sm font-semibold text-ink">

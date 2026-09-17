@@ -24,30 +24,40 @@ const FROM_CATEGORY: Record<Category, ItemCategory> = {
   'Medical Equipment': 'Health devices',
 }
 
-/** The form a product arrives in, so an untouched add is still specific. */
-const BY_UNIT: Partial<Record<ItemCategory, Partial<Record<ProductUnit, string>>>> = {
+/**
+ * The forms a product can honestly be sold in, by what one unit of it is.
+ *
+ * A shelf's full vocabulary is far wider than any one product: paracetamol
+ * belongs to the medicine shelf, but it is not an inhaler and never comes as
+ * eye drops. The unit is what decides — tablets come in strips and boxes, a
+ * syrup comes in a bottle, a cream comes in a tube — so only those are offered.
+ * The first entry is what the product defaults to.
+ */
+const BY_UNIT: Partial<Record<ItemCategory, Partial<Record<ProductUnit, readonly string[]>>>> = {
   Medicine: {
-    tablet: 'Strip',
-    capsule: 'Strip',
-    softgel: 'Strip',
-    sachet: 'Sachet (powder)',
-    ml: 'Bottle/Syrup',
-    g: 'Ointment/Cream tube',
+    tablet: ['Strip', 'Single tablet', 'Box'],
+    capsule: ['Strip', 'Capsule', 'Box'],
+    softgel: ['Strip', 'Capsule', 'Box'],
+    sachet: ['Sachet (powder)', 'Box'],
+    ml: ['Bottle/Syrup'],
+    g: ['Ointment/Cream tube'],
+    piece: ['Strip', 'Box'],
   },
   Skincare: {
-    ml: 'Big bottle',
-    g: 'Tube',
-    piece: 'Sachet',
-    item: 'Jar',
+    ml: ['Big bottle', 'Small bottle', 'Travel size', 'Pump bottle', 'Spray bottle'],
+    g: ['Tube', 'Jar'],
+    piece: ['Sachet'],
+    item: ['Jar', 'Tube'],
   },
   Cosmetics: {
-    ml: 'Bottle',
-    g: 'Compact',
-    item: 'Single piece',
-    piece: 'Single piece',
+    ml: ['Bottle'],
+    g: ['Compact', 'Palette'],
+    item: ['Single piece', 'Stick', 'Pencil'],
+    piece: ['Single piece'],
   },
   'Health devices': {
-    item: 'Unit (single)',
+    item: ['Unit (single)', 'Set/Kit'],
+    piece: ['Box (e.g. test strips)', 'Refill/Cartridge'],
   },
 }
 
@@ -55,13 +65,25 @@ export function itemCategoryFor(product: Product): ItemCategory {
   return product.itemCategory ?? FROM_CATEGORY[product.category]
 }
 
-export function unitTypesFor(category: ItemCategory): readonly string[] {
-  return UNIT_TYPES[category]
+/**
+ * What this product can be asked for. A product may name its own forms where
+ * the unit alone cannot tell — an inhaler and a suppository are both "item".
+ */
+export function unitTypesFor(product: Product): readonly string[] {
+  const category = itemCategoryFor(product)
+  if (product.unitTypes) return product.unitTypes
+
+  // A product that names a form its unit would not have guessed knows better
+  // than the unit does — a collagen powder is measured in grams but comes in
+  // sachets, not in the cream tube the gram mapping would offer.
+  const byUnit = BY_UNIT[category]?.[product.unit]
+  if (product.unitType && !byUnit?.includes(product.unitType)) return [product.unitType]
+
+  return byUnit ?? UNIT_TYPES[category]
 }
 
 export function defaultUnitType(product: Product): string {
-  const category = itemCategoryFor(product)
-  return product.unitType ?? BY_UNIT[category]?.[product.unit] ?? UNIT_TYPES[category][0]
+  return product.unitType ?? unitTypesFor(product)[0]
 }
 
 /** Whether a shelf asks anything beyond the unit type. */

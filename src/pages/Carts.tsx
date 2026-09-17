@@ -85,7 +85,7 @@ export default function Carts() {
                         <span className="font-semibold text-teal">Free delivery</span>
                       )}
                     </p>
-                    <OpenBadge store={store} className="mt-0.5" />
+                    <OpenBadge store={store} detail className="mt-0.5" />
                   </div>
 
                   <button

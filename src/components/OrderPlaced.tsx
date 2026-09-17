@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Order, Store } from '../data'
+import { playOrderChime } from '../lib/chime'
 import { TicketReceipt } from './TicketReceipt'
 
 const SECONDS_ON_SCREEN = 5
@@ -20,6 +21,8 @@ export function OrderPlaced({
   onDone: () => void
 }) {
   const [left, setLeft] = useState(SECONDS_ON_SCREEN)
+
+  useEffect(() => playOrderChime(), [])
 
   useEffect(() => {
     // On a phone the shopper is over in the ABA app while this sits behind it,

@@ -92,7 +92,7 @@ export function StoreBannerCard({
         {formatDistance(km)} away
       </p>
 
-      <OpenBadge store={store} className="mt-1" />
+      <OpenBadge store={store} detail className="mt-1" />
 
       {discount > 0 && (
         <span className="mt-2 inline-flex rounded-full bg-sale/10 px-2.5 py-1 text-sm font-semibold text-sale">

@@ -9,14 +9,8 @@ import {
   type SkinType,
   type Symptom,
 } from '../data'
+import { defaultUnitType, itemCategoryFor, unitTypesFor } from '../lib/itemTypes'
 import {
-  defaultUnitType,
-  itemCategoryFor,
-  unitTypesFor,
-  volumeUnit,
-} from '../lib/itemTypes'
-import {
-  isCounted,
   itemPrice,
   itemListPrice,
   packagingFor,
@@ -51,14 +45,10 @@ export function ProductOptions({ product }: { product: Product }) {
 
   // The shelf comes from the product; only the form is the shopper's to pick.
   const shelf = itemCategoryFor(product)
-  const unitTypes = unitTypesFor(shelf)
+  const unitTypes = unitTypesFor(product)
   const [unitType, setUnitType] = useState(() => defaultUnitType(product))
 
-  const [volume, setVolume] = useState('')
   const [skinType, setSkinType] = useState<SkinType | undefined>(undefined)
-  const [dosage, setDosage] = useState('')
-  const [perStrip, setPerStrip] = useState('')
-  const [prescription, setPrescription] = useState(false)
   const [symptom, setSymptom] = useState<Symptom | undefined>(undefined)
 
   // A typed amount only applies to the options that ask for one.
@@ -126,70 +116,14 @@ export function ProductOptions({ product }: { product: Product }) {
       </Field>
 
       {shelf === 'Skincare' && (
-        <Field label="Details" hint="Optional">
-          <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
-            <Line label={`Volume (${volumeUnit(product)})`}>
-              <input
-                type="number"
-                min={1}
-                value={volume}
-                onChange={(event) => setVolume(event.target.value)}
-                placeholder={String(product.packSize)}
-                className="input w-28 py-1.5"
-              />
-            </Line>
-            <Line label="Skin type">
-              <Tags
-                values={SKIN_TYPES}
-                selected={skinType}
-                onSelect={(next) => setSkinType(next)}
-              />
-            </Line>
-          </div>
+        <Field label="Skin type" hint="Optional">
+          <Tags values={SKIN_TYPES} selected={skinType} onSelect={setSkinType} />
         </Field>
       )}
 
       {shelf === 'Medicine' && (
-        <Field label="Details" hint="Optional">
-          <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
-            <Line label="Dosage">
-              <input
-                value={dosage}
-                onChange={(event) => setDosage(event.target.value)}
-                placeholder="e.g. 500mg"
-                maxLength={20}
-                className="input w-28 py-1.5"
-              />
-            </Line>
-
-            {isCounted(product.unit) && (
-              <Line label="Per strip">
-                <input
-                  type="number"
-                  min={1}
-                  value={perStrip}
-                  onChange={(event) => setPerStrip(event.target.value)}
-                  placeholder="10"
-                  className="input w-28 py-1.5"
-                />
-              </Line>
-            )}
-
-            <Line label="Prescription">
-              <button
-                type="button"
-                onClick={() => setPrescription((on) => !on)}
-                aria-pressed={prescription}
-                className={`chip ${prescription ? 'chip-active' : ''}`}
-              >
-                {prescription ? 'Required' : 'Not required'}
-              </button>
-            </Line>
-
-            <Line label="Symptom">
-              <Tags values={SYMPTOMS} selected={symptom} onSelect={(next) => setSymptom(next)} />
-            </Line>
-          </div>
+        <Field label="What is it for?" hint="Optional">
+          <Tags values={SYMPTOMS} selected={symptom} onSelect={setSymptom} />
         </Field>
       )}
 
@@ -300,11 +234,7 @@ export function ProductOptions({ product }: { product: Product }) {
               price: each,
               itemCategory: shelf,
               unitType,
-              volume: Number(volume) || undefined,
               skinType,
-              dosage: dosage.trim() || undefined,
-              perStrip: Number(perStrip) || undefined,
-              prescription: prescription || undefined,
               symptom,
             })
             setAdded(true)
@@ -339,16 +269,6 @@ function Field({
         <h3 className="text-sm font-bold text-ink">{label}</h3>
         {hint && <span className="text-xs text-muted">{hint}</span>}
       </div>
-      {children}
-    </div>
-  )
-}
-
-/** One optional field: its name on the left, its control on the right. */
-function Line({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="text-xs font-medium text-muted">{label}</span>
       {children}
     </div>
   )

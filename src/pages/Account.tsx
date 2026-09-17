@@ -9,10 +9,10 @@ import {
   UserRound,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { AuthForm } from '../components/AuthForm'
-import { Logo } from '../components/Logo'
 import { Layout } from '../components/Layout'
-import { useApp } from '../context/AppContext'
+import { useApp, type AuthTab } from '../context/AppContext'
 
 /**
  * The profile, in the shape the rest of the app's shelves use: a coloured band
@@ -21,37 +21,57 @@ import { useApp } from '../context/AppContext'
  */
 export default function Account() {
   const { user, address, orders, logout } = useApp()
+  const [tab, setTab] = useState<AuthTab>('login')
 
   const email = user?.contact.includes('@') ? user.contact : undefined
-  const phone = user && !email ? user.contact : address.phone
+  const phone = user?.phone ?? (user && !email ? user.contact : address.phone)
 
   return (
     <Layout header="none" floatingCart={false}>
-      <header className="bg-navy pb-20 pt-4">
-        <div className="app-container flex items-center gap-2">
-          <Link
-            to="/"
-            aria-label="Back to home"
-            className="-ml-1.5 rounded-lg p-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <ChevronLeft size={22} />
-          </Link>
-          <h1 className="text-lg font-bold text-white">{user ? 'Profile' : 'Your account'}</h1>
-        </div>
-      </header>
+      {user ? (
+        <header className="bg-navy pb-20 pt-4">
+          <div className="app-container flex items-center gap-2">
+            <Link
+              to="/"
+              aria-label="Back to home"
+              className="-ml-1.5 rounded-lg p-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ChevronLeft size={22} />
+            </Link>
+            <h1 className="text-lg font-bold text-white">Profile</h1>
+          </div>
+        </header>
+      ) : (
+        /* The curve is the whole welcome: a deep block the form sits under. */
+        <header className="rounded-br-[3.5rem] bg-navy-deep px-1 pb-12 pt-4">
+          <div className="app-container max-w-md">
+            <div className="flex items-start justify-between gap-3">
+              <Link
+                to="/"
+                aria-label="Back to home"
+                className="-ml-1.5 rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <ChevronLeft size={22} />
+              </Link>
+
+              <Link to="/" className="text-sm font-semibold text-white/80 hover:text-white">
+                Skip
+              </Link>
+            </div>
+
+            <p className="mt-6 text-sm text-white/70">
+              {tab === 'signup' ? 'Create Your Account' : 'Welcome Back!'}
+            </p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white">
+              {tab === 'signup' ? 'Sign Up' : 'Sign In'}
+            </h1>
+          </div>
+        </header>
+      )}
 
       {!user && (
-        <div className="app-container min-h-screen max-w-md pb-10">
-          <section className="card -mt-14 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Logo height={32} />
-              <div>
-                <p className="text-sm font-semibold text-ink">PharmaLink</p>
-                <p className="text-xs text-muted">Healthcare Connections</p>
-              </div>
-            </div>
-            <AuthForm />
-          </section>
+        <div className="app-container min-h-screen max-w-md py-8">
+          <AuthForm tab={tab} onTab={setTab} />
         </div>
       )}
 

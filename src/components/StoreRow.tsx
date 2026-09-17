@@ -42,7 +42,7 @@ export function StoreRow({
             <MapPin size={12} className="text-navy" />
             {formatDistance(distanceKm)}
           </span>
-          <OpenBadge store={store} />
+          <OpenBadge store={store} detail />
         </div>
         <StarRating rating={store.rating} reviewCount={store.reviewCount} className="mt-1" />
       </div>

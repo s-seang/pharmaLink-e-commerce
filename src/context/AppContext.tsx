@@ -23,6 +23,8 @@ import { PHNOM_PENH, type Coords } from '../lib/geo'
 export interface User {
   name: string
   contact: string
+  /** Given at sign-up; the delivery address supplies one otherwise. */
+  phone?: string
 }
 
 /** Everything that makes two lines the same thing to pick and to price. */
@@ -76,7 +78,7 @@ export type LocationStatus = 'idle' | 'locating' | 'granted' | 'fallback'
 
 interface AppState {
   user: User | null
-  login: (contact: string, name?: string) => void
+  login: (contact: string, name?: string, phone?: string) => void
   logout: () => void
 
   authModal: AuthTab | null
@@ -215,8 +217,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [user, cart, favourites, orders, address])
 
-  const login = useCallback((contact: string, name?: string) => {
-    setUser({ name: name?.trim() || nameFromContact(contact), contact })
+  const login = useCallback((contact: string, name?: string, phone?: string) => {
+    setUser({
+      name: name?.trim() || nameFromContact(contact),
+      contact,
+      phone: phone?.trim() || undefined,
+    })
     setAuthModal(null)
   }, [])
 

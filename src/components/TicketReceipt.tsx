@@ -33,9 +33,7 @@ export function TicketReceipt({
   return (
     <div className="relative mx-auto w-full max-w-sm rounded-3xl bg-white shadow-[0_18px_48px_-24px_rgba(31,68,102,0.45)]">
       <div className="px-7 pb-8 pt-9 text-center">
-        <p className="text-4xl leading-none" aria-hidden="true">
-          🎉
-        </p>
+        <SuccessTick />
         <h2 className="mt-4 text-2xl font-bold text-ink">Thank you!</h2>
         <p className="mx-auto mt-1.5 max-w-[15rem] text-sm leading-relaxed text-muted">
           Your order has been placed successfully
@@ -98,6 +96,39 @@ export function TicketReceipt({
 
       <Scallops />
     </div>
+  )
+}
+
+/** Draws itself on mount: the ring sweeps round, then the tick strikes through. */
+function SuccessTick() {
+  return (
+    <svg
+      viewBox="0 0 52 52"
+      className="tick mx-auto h-16 w-16"
+      role="img"
+      aria-label="Order confirmed"
+    >
+      <circle
+        className="tick-ring"
+        cx="26"
+        cy="26"
+        r="23"
+        fill="none"
+        stroke="#1F9D3D"
+        strokeWidth="4"
+        strokeLinecap="round"
+        transform="rotate(-90 26 26)"
+      />
+      <path
+        className="tick-mark"
+        d="M14 27l8 8 16-18"
+        fill="none"
+        stroke="#1F9D3D"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 
