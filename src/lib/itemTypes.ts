@@ -22,6 +22,7 @@ const FROM_CATEGORY: Record<Category, ItemCategory> = {
   Supplement: 'Medicine',
   Cosmetic: 'Skincare',
   'Medical Equipment': 'Health devices',
+  'Personal care': 'Personal care',
 }
 
 /**
@@ -58,6 +59,12 @@ const BY_UNIT: Partial<Record<ItemCategory, Partial<Record<ProductUnit, readonly
   'Health devices': {
     item: ['Unit (single)', 'Set/Kit'],
     piece: ['Box (e.g. test strips)', 'Refill/Cartridge'],
+  },
+  'Personal care': {
+    ml: ['Bottle', 'Spray'],
+    g: ['Stick', 'Bar'],
+    piece: ['Pack', 'Sachet'],
+    item: ['Bottle', 'Roll-on'],
   },
 }
 

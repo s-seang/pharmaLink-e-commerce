@@ -2,16 +2,20 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  CreditCard,
   Heart,
   KeyRound,
   LogOut,
   MapPin,
+  Plus,
   ShoppingCart,
+  Smartphone,
   Ticket,
   UserRound,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import { PaymentMethodSheet } from '../components/PaymentMethodSheet'
 import { AuthForm } from '../components/AuthForm'
 import { Layout } from '../components/Layout'
 import { useApp, type AuthTab } from '../context/AppContext'
@@ -22,8 +26,10 @@ import { useApp, type AuthTab } from '../context/AppContext'
  * their name, then the account rows and the standing links as two groups.
  */
 export default function Account() {
-  const { user, address, orders, favourites, carts, logout } = useApp()
+  const { user, address, orders, favourites, carts, logout, savedPayment, forgetPayment } =
+    useApp()
   const [tab, setTab] = useState<AuthTab>('login')
+  const [addingPayment, setAddingPayment] = useState(false)
 
   const email = user?.contact.includes('@') ? user.contact : undefined
   const phone = user?.phone ?? (user && !email ? user.contact : address.phone)
@@ -64,19 +70,13 @@ export default function Account() {
         /* The curve is the whole welcome: a deep block the form sits under. */
         <header className="rounded-br-[3.5rem] bg-navy-deep px-1 pb-12 pt-4">
           <div className="app-container max-w-md">
-            <div className="flex items-start justify-between gap-3">
-              <Link
-                to="/"
-                aria-label="Back to home"
-                className="-ml-1.5 rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <ChevronLeft size={22} />
-              </Link>
-
-              <Link to="/" className="text-sm font-semibold text-white/80 hover:text-white">
-                Skip
-              </Link>
-            </div>
+            <Link
+              to="/"
+              aria-label="Back to home"
+              className="-ml-1.5 inline-flex rounded-lg p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ChevronLeft size={22} />
+            </Link>
 
             <p className="mt-6 text-sm text-white/70">
               {tab === 'signup' ? 'Create Your Account' : 'Welcome Back!'}
@@ -104,6 +104,54 @@ export default function Account() {
           <Tile icon={ShoppingCart} label="Your carts" to="/carts" note={`${carts.length} open`} />
         </div>
 
+        {/* Saved so checkout can settle in one tap rather than a form. */}
+        <section className="card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-ink">Payment method</h2>
+            {savedPayment && (
+              <button
+                type="button"
+                onClick={forgetPayment}
+                className="text-xs font-semibold text-muted transition-colors hover:text-sale"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+
+          {savedPayment ? (
+            <div className="mt-3 flex items-center gap-3 rounded-xl bg-surface p-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-navy">
+                {savedPayment.kind === 'card' ? <CreditCard size={20} /> : <Smartphone size={20} />}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-ink">
+                  {savedPayment.label}
+                  {savedPayment.last4 ? ` ···· ${savedPayment.last4}` : ''}
+                </span>
+                <span className="block text-xs text-muted">
+                  {savedPayment.expiry ? `Valid through ${savedPayment.expiry}` : 'Linked account'}
+                  {' · pays in one tap'}
+                </span>
+              </span>
+            </div>
+          ) : (
+            <>
+              <p className="mt-1 text-xs text-muted">
+                Save a card or link ABA and checkout settles without typing it again.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAddingPayment(true)}
+                className="btn-outline mt-3 w-full"
+              >
+                <Plus size={16} />
+                Add a payment method
+              </button>
+            </>
+          )}
+        </section>
+
         <section className="card divide-y divide-line">
           <Row icon={MapPin} label="Delivery address" value={address.line1} />
           <Row icon={KeyRound} label="Change password" value="Last changed — never" />
@@ -122,6 +170,8 @@ export default function Account() {
         </button>
       </div>
       )}
+
+      {addingPayment && <PaymentMethodSheet onClose={() => setAddingPayment(false)} />}
     </Layout>
   )
 }

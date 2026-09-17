@@ -2,15 +2,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { bestDiscount, leadingCategory, stores, type Store } from '../data'
+import { useDriftingRail } from '../hooks/useLoopingRail'
 import { StoreLogo } from './StoreLogo'
 
 /** Offers run to the end of the month — the same date for every shop. */
 function expiresOn(): string {
   const now = new Date()
   return new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString(undefined, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
+    day: 'numeric',
+    month: 'short',
   })
 }
 
@@ -23,6 +23,7 @@ function expiresOn(): string {
  */
 export function OfferRail() {
   const rail = useRef<HTMLDivElement>(null)
+  useDriftingRail(rail, 22, true)
 
   const offers = stores
     .map((store) => ({ store, percent: bestDiscount(store.id) }))
@@ -55,52 +56,106 @@ export function OfferRail() {
       </div>
 
       <div ref={rail} className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
-        {offers.map(({ store, percent }) => (
-          <OfferCoupon key={store.id} store={store} percent={percent} />
+        {/* Laid out twice: the rail wraps at the halfway mark, where the second
+            run looks like the first, so the loop has no seam. The repeat is
+            hidden from screen readers — each offer is announced once. */}
+        {[...offers, ...offers].map(({ store, percent }, index) => (
+          <div
+            key={`${store.id}-${index}`}
+            aria-hidden={index >= offers.length}
+            className="contents"
+          >
+            <OfferCoupon store={store} percent={percent} index={index % offers.length} />
+          </div>
         ))}
       </div>
     </section>
   )
 }
 
-function OfferCoupon({ store, percent }: { store: Store; percent: number }) {
+/**
+ * Stub colours, taken in turn so a row of coupons does not come out all one
+ * shade. Each pairs a fill with the ink that reads on it.
+ */
+const STUBS = [
+  { fill: '#4A9A96', ink: 'text-white', button: 'bg-white text-teal' },
+  { fill: '#EF9F27', ink: 'text-ink', button: 'bg-ink text-white' },
+  { fill: '#C2410C', ink: 'text-white', button: 'bg-white text-sale' },
+  { fill: '#2B5C8A', ink: 'text-white', button: 'bg-white text-navy' },
+] as const
+
+function OfferCoupon({ store, percent, index }: { store: Store; percent: number; index: number }) {
   const sells = leadingCategory(store)
+  const stub = STUBS[index % STUBS.length]
 
   return (
-    <article className="flex w-[19rem] shrink-0 overflow-hidden rounded-card border border-line bg-white">
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4">
-        <div className="flex items-center gap-2">
-          <StoreLogo store={store} size={28} />
-          <span className="truncate text-xs font-semibold text-muted">{store.branch}</span>
+    <article className="relative flex h-40 w-[21rem] shrink-0">
+      {/* The counterfoil: brand at the top, the offer spelled out, the shop's
+          own mark standing in for the artwork. */}
+      <div className="relative flex min-w-0 flex-1 items-center gap-3 rounded-l-xl bg-[#FBF8F0] p-4">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-2.5 rounded-lg border border-dashed border-ink/20"
+        />
+
+        <div className="relative min-w-0 flex-1">
+          <p className="truncate text-[11px] font-semibold text-ink/70">{store.name}</p>
+
+          <p className="mt-1 text-xl font-extrabold uppercase leading-[1.05] tracking-tight text-ink">
+            Discount
+            <br />
+            Coupon
+          </p>
+
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-ink/60">
+            Valid until {expiresOn()}
+          </p>
         </div>
-        <p className="text-sm font-bold leading-snug text-ink">
-          {store.name}: up to {percent}% off
-          {sells ? ` on ${sells.toLowerCase()}` : ''}
-        </p>
+
+        <StoreLogo store={store} size={72} className="relative shrink-0" />
       </div>
 
-      {/* The tear line: two bites out of the seam, in the left half's colour. */}
-      <div className="relative w-[8.5rem] shrink-0 bg-navy px-3 py-4 text-center text-white">
+      {/* The tear-off, bitten out at both ends and perforated down the seam. */}
+      <div
+        className={`relative flex w-[7.5rem] shrink-0 flex-col items-center justify-center gap-0.5 rounded-r-xl ${stub.ink}`}
+        style={{ backgroundColor: stub.fill }}
+      >
         <span
           aria-hidden="true"
-          className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-white"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-3 -left-3 h-6 w-6 rounded-full bg-white"
+          className="pointer-events-none absolute inset-2.5 rounded-lg border border-dashed border-current opacity-40"
         />
 
-        <p className="text-3xl font-extrabold leading-none">{percent}%</p>
-        <p className="text-xs font-semibold tracking-widest">OFF</p>
-        <p className="mt-1.5 text-[10px] text-white/70">Expires on {expiresOn()}</p>
+        <p className="relative text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">
+          Voucher
+        </p>
+        <p className="relative text-3xl font-extrabold leading-none">{percent}%</p>
+        <p className="relative text-[11px] font-bold uppercase tracking-wide">Discount</p>
 
         <Link
           to={`/store/${store.id}`}
-          className="mt-2.5 inline-flex rounded-md bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-navy transition-colors hover:bg-navy-tint"
+          className={`relative mt-2 rounded-full px-3 py-1 text-[11px] font-bold ${stub.button}`}
         >
           Get Deal
         </Link>
       </div>
+
+      {/* Bites taken out of both outer edges, in the page's own colour. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-[7.5rem] w-px border-l-2 border-dashed border-white/70"
+      />
+
+      <p className="sr-only">
+        {store.name}: up to {percent}% off{sells ? ` on ${sells.toLowerCase()}` : ''}
+      </p>
     </article>
   )
 }

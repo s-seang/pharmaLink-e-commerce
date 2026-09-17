@@ -1,5 +1,6 @@
-import { AlertCircle, HelpCircle, Info, Lock, X } from 'lucide-react'
+import { AlertCircle, CreditCard, HelpCircle, Info, Lock, X } from 'lucide-react'
 import { useState } from 'react'
+import { useApp } from '../context/AppContext'
 import { formatPrice } from '../data'
 
 /** "1456 1298 6574 1287" — grouped as it is printed on the card. */
@@ -53,6 +54,7 @@ export function CardPayment({
   onPaid: () => void
   onClose: () => void
 }) {
+  const { savedPayment } = useApp()
   const [name, setName] = useState('')
   const [number, setNumber] = useState('')
   const [expiry, setExpiry] = useState('')
@@ -79,6 +81,60 @@ export function CardPayment({
       : INSECURE
         ? { tone: 'info' as const, text: 'Autofill is off — this demo is not served over HTTPS.' }
         : null
+
+  // A card on file turns this step into a confirmation.
+  if (savedPayment?.kind === 'card') {
+    return (
+      <div
+        className="sheet-scrim fixed inset-0 z-[70] flex items-end justify-center bg-black/50 sm:items-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirm payment"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) onClose()
+        }}
+      >
+        <div className="sheet-panel w-full max-w-sm rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] shadow-xl sm:rounded-2xl">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-xl font-bold text-ink">Confirm payment</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="-mr-1.5 -mt-1 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface hover:text-ink"
+              aria-label="Cancel payment"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="mt-5 flex items-center gap-3 rounded-xl bg-surface p-3.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-navy">
+              <CreditCard size={20} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-ink">
+                {savedPayment.label} ···· {savedPayment.last4}
+              </span>
+              <span className="block text-xs text-muted">Saved to your account</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onPaid}
+            className="btn-primary mt-6 w-full rounded-xl py-3.5 text-base tracking-wide"
+          >
+            PAY {formatPrice(amount)}
+          </button>
+
+          <p className="mt-3 flex items-start gap-2 text-xs text-muted">
+            <Lock size={14} className="mt-0.5 shrink-0 text-teal" />
+            A demo card form — nothing is charged.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

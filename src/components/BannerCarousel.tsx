@@ -16,7 +16,7 @@ export function BannerCarousel() {
   const railRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
 
-  useLoopingRail(railRef, 5000)
+  useLoopingRail(railRef, 3000)
 
   useEffect(() => {
     const rail = railRef.current

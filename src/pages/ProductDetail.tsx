@@ -7,6 +7,7 @@ import { ProductOptions } from '../components/ProductOptions'
 import { StarRating } from '../components/StarRating'
 import { StoreLogo } from '../components/StoreLogo'
 import { useApp } from '../context/AppContext'
+import { useAboveFooter } from '../hooks/useAboveFooter'
 import {
   finalPrice,
   formatPrice,
@@ -22,6 +23,7 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { openCart, cartCount, toggleFavourite, isFavourite, coords } = useApp()
+  const clearOfFooter = useAboveFooter()
 
   const product = getProduct(id)
 
@@ -54,35 +56,46 @@ export default function ProductDetail() {
           className="aspect-square w-full sm:aspect-[16/9]"
         />
 
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="absolute left-4 top-3 rounded-full bg-white/90 p-2 text-navy-deep shadow-sm backdrop-blur transition-colors hover:bg-white"
-          aria-label="Go back"
-        >
-          <ArrowLeft size={20} />
-        </button>
-
-        {/* Clear of the floating cart button, which is fixed at right-4. */}
-        <button
-          type="button"
-          onClick={() => toggleFavourite(product.id)}
-          aria-pressed={favourite}
-          aria-label={favourite ? 'Remove from favourites' : 'Add to favourites'}
-          className="absolute right-[4.25rem] top-3 rounded-full bg-white/90 p-2 shadow-sm backdrop-blur transition-colors hover:bg-white"
-        >
-          <Heart
-            size={20}
-            className={favourite ? 'text-sale' : 'text-navy-deep'}
-            fill={favourite ? 'currentColor' : 'none'}
-          />
-        </button>
-
         {discounted && (
           <span className="absolute bottom-4 left-4 rounded-md bg-sale px-2.5 py-1 text-sm font-bold text-white">
             -{product.discountPercent}%
           </span>
         )}
+      </div>
+
+      {/* Pinned rather than riding the artwork: the way back should not scroll
+          off the top of a long product page. Laid out in the content column so
+          they stay beside it on a wide screen, and clear of the cart button
+          that is fixed in its own strip at the same height. */}
+      <div
+        className={`pointer-events-none fixed inset-x-0 top-3 z-50 transition-opacity duration-200 ${
+          clearOfFooter ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <div className="app-container flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="pointer-events-auto rounded-full bg-white/90 p-2 text-navy-deep shadow-sm backdrop-blur transition-colors hover:bg-white"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleFavourite(product.id)}
+            aria-pressed={favourite}
+            aria-label={favourite ? 'Remove from favourites' : 'Add to favourites'}
+            className="pointer-events-auto mr-12 rounded-full bg-white/90 p-2 shadow-sm backdrop-blur transition-colors hover:bg-white"
+          >
+            <Heart
+              size={20}
+              className={favourite ? 'text-sale' : 'text-navy-deep'}
+              fill={favourite ? 'currentColor' : 'none'}
+            />
+          </button>
+        </div>
       </div>
 
       <div className="app-container space-y-6 py-5 pb-28">
@@ -108,7 +121,6 @@ export default function ProductDetail() {
         </section>
 
         <section>
-          <h2 className="section-title mb-3">Choose what you need</h2>
           <ProductOptions product={product} />
         </section>
 

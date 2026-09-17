@@ -20,6 +20,21 @@ import { itemPrice, roundMoney, type Variant } from '../lib/packaging'
 import { DEFAULT_ADDRESS, type DeliveryAddress } from '../lib/delivery'
 import { PHNOM_PENH, type Coords } from '../lib/geo'
 
+/**
+ * A payment method kept for next time.
+ *
+ * Only what a receipt would print: the brand and the last four digits. The card
+ * number itself is never stored — there is no processor to hand it to, and a
+ * demo has no business keeping one.
+ */
+export interface SavedPayment {
+  kind: 'card' | 'aba'
+  /** "Visa" or the ABA account it draws from. */
+  label: string
+  last4?: string
+  expiry?: string
+}
+
 export interface User {
   name: string
   contact: string
@@ -130,6 +145,11 @@ interface AppState {
   toggleFavourite: (productId: string) => void
   isFavourite: (productId: string) => boolean
 
+  /** Kept so checkout can settle in one tap instead of a form. */
+  savedPayment: SavedPayment | null
+  savePayment: (payment: SavedPayment) => void
+  forgetPayment: () => void
+
   coords: Coords
   locationStatus: LocationStatus
   requestLocation: () => void
@@ -148,6 +168,7 @@ const STORAGE_KEY = 'pharmalink.state.v1'
 
 interface Persisted {
   user: User | null
+  savedPayment: SavedPayment | null
   cart: CartLine[]
   favourites: string[]
   orders: Order[]
@@ -157,6 +178,7 @@ interface Persisted {
 function readPersisted(): Persisted {
   const empty: Persisted = {
     user: null,
+    savedPayment: null,
     cart: [],
     favourites: [],
     orders: [],
@@ -168,6 +190,7 @@ function readPersisted(): Persisted {
     const parsed = JSON.parse(raw) as Partial<Persisted>
     return {
       user: parsed.user ?? null,
+      savedPayment: parsed.savedPayment ?? null,
       cart: Array.isArray(parsed.cart) ? parsed.cart : [],
       favourites: Array.isArray(parsed.favourites) ? parsed.favourites : [],
       orders: Array.isArray(parsed.orders) ? parsed.orders : [],
@@ -196,6 +219,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [favourites, setFavourites] = useState<string[]>(initial.favourites)
   const [orders, setOrders] = useState<Order[]>(initial.orders)
   const [address, setAddress] = useState<DeliveryAddress>(initial.address)
+  const [savedPayment, setSavedPayment] = useState<SavedPayment | null>(initial.savedPayment)
   const [authModal, setAuthModal] = useState<AuthTab | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   /** Which shop's basket the drawer and checkout are working on. */
@@ -211,11 +235,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, cart, favourites, orders, address }))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ user, cart, favourites, orders, address, savedPayment }),
+      )
     } catch {
       // Storage can be unavailable in private mode — state stays in memory only.
     }
-  }, [user, cart, favourites, orders, address])
+  }, [user, cart, favourites, orders, address, savedPayment])
 
   const login = useCallback((contact: string, name?: string, phone?: string) => {
     setUser({
@@ -494,6 +521,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     favourites,
     toggleFavourite,
     isFavourite: (productId: string) => favourites.includes(productId),
+    savedPayment,
+    savePayment: setSavedPayment,
+    forgetPayment: () => setSavedPayment(null),
     coords,
     locationStatus,
     requestLocation,

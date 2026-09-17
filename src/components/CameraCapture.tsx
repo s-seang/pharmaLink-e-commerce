@@ -1,4 +1,4 @@
-import { Circle, Square, X } from 'lucide-react'
+import { Circle, SwitchCamera, Square, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 export type CaptureKind = 'image' | 'video'
@@ -33,12 +33,15 @@ export function CameraCapture({
   const [error, setError] = useState('')
   const [recording, setRecording] = useState(false)
   const [seconds, setSeconds] = useState(0)
+  /** Which way the camera points. Flipping restarts the stream. */
+  const [facing, setFacing] = useState<'environment' | 'user'>('environment')
+  const [canFlip, setCanFlip] = useState(false)
 
   useEffect(() => {
     let live = true
 
     navigator.mediaDevices
-      ?.getUserMedia({ video: { facingMode: 'environment' }, audio: kind === 'video' })
+      ?.getUserMedia({ video: { facingMode: facing }, audio: kind === 'video' })
       .then((media) => {
         if (!live) {
           media.getTracks().forEach((track) => track.stop())
@@ -46,6 +49,14 @@ export function CameraCapture({
         }
         stream.current = media
         if (video.current) video.current.srcObject = media
+
+        // Only offer the flip where there is somewhere to flip to.
+        navigator.mediaDevices
+          .enumerateDevices()
+          .then((devices) => {
+            if (live) setCanFlip(devices.filter((d) => d.kind === 'videoinput').length > 1)
+          })
+          .catch(() => undefined)
       })
       .catch(() => {
         if (live) setError('PharmaLink needs permission to use your camera.')
@@ -57,7 +68,7 @@ export function CameraCapture({
       if (recorder.current?.state === 'recording') recorder.current.stop()
       stream.current?.getTracks().forEach((track) => track.stop())
     }
-  }, [kind])
+  }, [kind, facing])
 
   /** Grab the current frame off the preview. */
   const shoot = () => {
@@ -109,14 +120,28 @@ export function CameraCapture({
         <p className="text-sm font-semibold" aria-live="polite">
           {recording ? `Recording… ${clock(seconds)}` : kind === 'video' ? 'Record a video' : 'Take a photo'}
         </p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close camera"
-          className="rounded-lg p-2 transition-colors hover:bg-white/10"
-        >
-          <X size={22} />
-        </button>
+        <div className="flex items-center gap-1">
+          {canFlip && !error && (
+            <button
+              type="button"
+              onClick={() => setFacing((side) => (side === 'environment' ? 'user' : 'environment'))}
+              // Swapping the camera mid-take would splice two streams together.
+              disabled={recording}
+              aria-label={facing === 'environment' ? 'Switch to front camera' : 'Switch to back camera'}
+              className="rounded-lg p-2 transition-colors hover:bg-white/10 disabled:opacity-30"
+            >
+              <SwitchCamera size={22} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close camera"
+            className="rounded-lg p-2 transition-colors hover:bg-white/10"
+          >
+            <X size={22} />
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center overflow-hidden">
@@ -128,7 +153,7 @@ export function CameraCapture({
             autoPlay
             playsInline
             muted
-            className="h-full w-full object-contain"
+            className={`h-full w-full object-contain ${facing === 'user' ? '-scale-x-100' : ''}`}
           />
         )}
       </div>

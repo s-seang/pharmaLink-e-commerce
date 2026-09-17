@@ -1,5 +1,10 @@
 /** What a product is. Shown under "Filter by product" in the header. */
-export type Category = 'Medicine' | 'Cosmetic' | 'Supplement' | 'Medical Equipment'
+export type Category =
+  | 'Medicine'
+  | 'Cosmetic'
+  | 'Supplement'
+  | 'Medical Equipment'
+  | 'Personal care'
 
 /**
  * The shelf a cart item is configured against.
@@ -75,7 +80,13 @@ export type Symptom = (typeof SYMPTOMS)[number]
 export type StoreType = 'Pharmacy' | 'Skincare'
 
 /** Every category that exists in the catalogue. */
-export const CATEGORIES: Category[] = ['Medicine', 'Cosmetic', 'Supplement', 'Medical Equipment']
+export const CATEGORIES: Category[] = [
+  'Medicine',
+  'Cosmetic',
+  'Supplement',
+  'Medical Equipment',
+  'Personal care',
+]
 
 export const STORE_FILTERS: StoreType[] = ['Pharmacy', 'Skincare']
 

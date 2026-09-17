@@ -1,4 +1,6 @@
 import type { Store } from './types'
+import skincare6Logo from '../assets/stores/skincare6.png'
+import skincare7Logo from '../assets/stores/skincare7.png'
 import pharma1Logo from '../assets/stores/pharma1.png'
 import pharma2Logo from '../assets/stores/pharma2.png'
 import pharma3Logo from '../assets/stores/pharma3.png'
@@ -252,5 +254,49 @@ export const stores: Store[] = [
     lng: 104.9143,
     hours: { label: 'Every day, 7:00 – 20:30', opensAt: 7, closesAt: 20 },
     pharmacist: 'Dr. Ouk Sovann',
+  },
+  {
+    id: 'beauty-store',
+    name: 'Beauty Store',
+    branch: 'Toul Tom Poung',
+    type: 'Skincare',
+    initials: 'BS',
+    logoColor: '#FDE3EE',
+    logo: skincare6Logo,
+    rating: 4.6,
+    reviewCount: 274,
+    prepMinutes: 12,
+    abaAccount: 'beauty_store@aba',
+    freeDelivery: true,
+    phone: '+855 23 555 128',
+    address: 'No. 88, Street 155, Toul Tom Poung, Phnom Penh',
+    lat: 11.5471,
+    lng: 104.9184,
+    hours: { label: 'Every day, 9:00 - 21:00', opensAt: 9, closesAt: 21 },
+    description:
+      'A skincare counter first and a pharmacy second, stocking Korean cleansers and serums alongside the everyday basics.',
+    contactPerson: 'Chan Sopheak',
+    pharmacist: 'Dr. Chan Sopheak',
+  },
+  {
+    id: 'cosmetics-corner',
+    name: 'Cosmetics',
+    branch: 'Boeung Trabek',
+    type: 'Skincare',
+    initials: 'CO',
+    logoColor: '#FFFFFF',
+    logo: skincare7Logo,
+    rating: 4.5,
+    reviewCount: 188,
+    prepMinutes: 15,
+    abaAccount: 'cosmetics_corner@aba',
+    phone: '+855 23 611 940',
+    address: 'No. 12, Street 336, Boeung Trabek, Phnom Penh',
+    lat: 11.5378,
+    lng: 104.9251,
+    hours: { label: 'Mon-Sat, 9:30 - 20:00', opensAt: 9, closesAt: 20 },
+    description:
+      'Make-up and lip care beside the dispensary, with staff who will talk you through a shade before you buy it.',
+    contactPerson: 'Em Sreypov',
   },
 ]

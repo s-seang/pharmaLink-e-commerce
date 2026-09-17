@@ -50,3 +50,68 @@ export function useLoopingRail(rail: RefObject<HTMLElement | null>, everyMs = 40
     }
   }, [rail, everyMs])
 }
+
+/**
+ * The same idea at walking pace: instead of jumping a card at a time, the rail
+ * creeps along and slips back to the start when it runs out.
+ *
+ * Measured in pixels per second, so the speed reads the same whatever the
+ * screen. Holds still under a pointer, and for anyone who asked for less motion.
+ */
+export function useDriftingRail(
+  rail: RefObject<HTMLElement | null>,
+  pxPerSecond = 22,
+  /**
+   * True when the caller has rendered its items twice. The rail then wraps at
+   * the halfway mark, where the second copy looks exactly like the first, so
+   * the loop has no seam — rather than snapping back from the end.
+   */
+  doubled = false,
+): void {
+  useEffect(() => {
+    const element = rail.current
+    if (!element) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let held = false
+    let frame = 0
+    let last = performance.now()
+
+    const hold = () => {
+      held = true
+    }
+    const release = () => {
+      held = false
+      last = performance.now()
+    }
+
+    element.addEventListener('pointerenter', hold)
+    element.addEventListener('pointerleave', release)
+    element.addEventListener('pointerdown', hold)
+    element.addEventListener('pointerup', release)
+    element.addEventListener('pointercancel', release)
+
+    const step = (now: number) => {
+      const elapsed = now - last
+      last = now
+
+      const wrapAt = doubled ? element.scrollWidth / 2 : element.scrollWidth - element.clientWidth
+      if (!held && wrapAt > 0) {
+        const next = element.scrollLeft + (pxPerSecond * elapsed) / 1000
+        element.scrollLeft = next >= wrapAt ? next - wrapAt : next
+      }
+      frame = requestAnimationFrame(step)
+    }
+
+    frame = requestAnimationFrame(step)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      element.removeEventListener('pointerenter', hold)
+      element.removeEventListener('pointerleave', release)
+      element.removeEventListener('pointerdown', hold)
+      element.removeEventListener('pointerup', release)
+      element.removeEventListener('pointercancel', release)
+    }
+  }, [rail, pxPerSecond, doubled])
+}

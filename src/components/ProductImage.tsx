@@ -71,6 +71,15 @@ function Glyph({ category, palette }: { category: Category; palette: (typeof PAL
           <rect x="52" y="72" width="30" height="6" rx="3" fill={accent} />
         </g>
       )
+    default:
+      // A plain carton, for anything the shelves gain later.
+      return (
+        <g>
+          <rect x="34" y="40" width="52" height="44" rx="6" fill={shape} />
+          <rect x="34" y="52" width="52" height="8" fill={accent} />
+          <rect x="54" y="40" width="12" height="44" fill={palette.bg} opacity="0.35" />
+        </g>
+      )
   }
 }
 

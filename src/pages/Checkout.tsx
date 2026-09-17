@@ -50,11 +50,13 @@ export default function Checkout() {
     user,
     openAuth,
     now,
+    savedPayment,
   } = useApp()
   const navigate = useNavigate()
 
   const [speed, setSpeed] = useState<DeliveryKey>('standard')
-  const [payment, setPayment] = useState<PaymentKey>('cash')
+  // Whatever is saved is what they meant to use, so it starts selected.
+  const [payment, setPayment] = useState<PaymentKey>(savedPayment?.kind ?? 'cash')
   const [speedSheet, setSpeedSheet] = useState(false)
   const [editing, setEditing] = useState(false)
   // Minted once when the sheet opens, not per render: the reference is printed
@@ -239,7 +241,13 @@ export default function Checkout() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold text-ink">{label}</span>
-                      <span className="block truncate text-xs text-muted">{note}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {savedPayment?.kind === value
+                          ? `${savedPayment.label}${
+                              savedPayment.last4 ? ` ···· ${savedPayment.last4}` : ''
+                            } · saved`
+                          : note}
+                      </span>
                     </span>
                     <span
                       aria-hidden="true"

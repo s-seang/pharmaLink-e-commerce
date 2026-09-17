@@ -40,7 +40,6 @@ export function ProductOptions({ product }: { product: Product }) {
 
   const [typedUnits, setTypedUnits] = useState<number>(chosen.suggested ?? 1)
   const [quantity, setQuantity] = useState(1)
-  const [note, setNote] = useState('')
   const [added, setAdded] = useState(false)
 
   // The shelf comes from the product; only the form is the shopper's to pick.
@@ -195,17 +194,6 @@ export function ProductOptions({ product }: { product: Product }) {
         />
       </Field>
 
-      <Field label="Notes for the pharmacy" hint="Optional">
-        <textarea
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          rows={2}
-          maxLength={200}
-          placeholder="e.g. only need 5 tablets, or the smallest size available"
-          className="input resize-none"
-        />
-      </Field>
-
       <div className="rounded-card border border-line bg-surface p-4">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-muted">
@@ -230,7 +218,6 @@ export function ProductOptions({ product }: { product: Product }) {
               packaging: chosen.kind,
               units,
               size: sizes ? size : undefined,
-              note: note.trim() || undefined,
               price: each,
               itemCategory: shelf,
               unitType,

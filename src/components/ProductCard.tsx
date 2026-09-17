@@ -44,7 +44,7 @@ export function ProductCard({
   return (
     <article className="flex flex-col">
       {showStore && store && (
-        <div className="mb-2 flex items-center gap-1.5">
+        <div className="mb-2 flex items-center gap-1.5 border-b border-line pb-2">
           <Link
             to={`/store/${store.id}`}
             className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink hover:text-navy"

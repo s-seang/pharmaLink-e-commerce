@@ -28,6 +28,7 @@ import {
   type Store,
 } from '../data'
 import { useApp } from '../context/AppContext'
+import { useAboveFooter } from '../hooks/useAboveFooter'
 import { directionsUrl } from '../lib/geo'
 
 /**
@@ -48,6 +49,7 @@ export default function StorePage() {
   /** Shown once on arrival; the banner below carries the point from then on. */
   const [closedNotice, setClosedNotice] = useState(true)
   const { now } = useApp()
+  const clearOfFooter = useAboveFooter()
 
   const storeProducts = useMemo(() => (store ? productsByStore(store.id) : []), [store])
 
@@ -92,17 +94,27 @@ export default function StorePage() {
 
   return (
     <Layout header="none" floatingCart={false} cartBarStore={store.id}>
-      <div data-store-band className="bg-navy-deep text-white">
-        <div className="app-container py-4">
+      {/* Pinned, so the way out is always to hand, and faded once the footer
+          reaches it rather than left floating over it. */}
+      <div
+        className={`pointer-events-none fixed inset-x-0 top-3 z-50 transition-opacity duration-200 ${
+          clearOfFooter ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        <div className="app-container">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="-ml-1 mb-3 rounded-lg p-1.5 text-white/90 transition-colors hover:bg-white/10"
+            className="pointer-events-auto rounded-full bg-white/90 p-2 text-navy-deep shadow-sm backdrop-blur transition-colors hover:bg-white"
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
           </button>
+        </div>
+      </div>
 
+      <div data-store-band className="bg-navy-deep pt-14 text-white">
+        <div className="app-container py-4">
           <div className="flex items-start gap-3">
             <StoreLogo store={store} size={64} className="border-white/30" />
             <div className="min-w-0 flex-1">
