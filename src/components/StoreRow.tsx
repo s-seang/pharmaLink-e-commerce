@@ -1,6 +1,7 @@
 import { ChevronRight, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import type { Store } from '../data'
+import { useApp } from '../context/AppContext'
+import { isOpenNow, type Store } from '../data'
 import { formatDistance } from '../lib/geo'
 import { OpenBadge } from './OpenBadge'
 import { StarRating } from './StarRating'
@@ -18,11 +19,18 @@ export function StoreRow({
   /** Sizing from the caller — a sideways rail needs a fixed width per row. */
   className?: string
 }) {
+  const { now } = useApp()
+  // A shut pharmacy still belongs in the list — it just should not compete for
+  // attention with the ones that can take the order.
+  const shut = !isOpenNow(store, now)
+
   return (
     <Link
       to={`/store/${store.id}`}
       style={{ height: STORE_ROW_HEIGHT }}
-      className={`card flex items-center gap-3 p-3 transition-colors hover:border-navy ${className}`}
+      className={`card flex items-center gap-3 p-3 transition-colors hover:border-navy ${
+        shut ? 'opacity-60 hover:opacity-100' : ''
+      } ${className}`}
     >
       <StoreLogoMark store={store} />
 

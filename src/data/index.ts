@@ -44,8 +44,20 @@ export function storeRating(product: Product): number {
   return getStore(product.storeId)?.rating ?? 0
 }
 
-/** Stores are open when the local clock falls inside their hours. */
+/**
+ * Open shops before closed ones, for any list that suggests a pharmacy.
+ *
+ * Only ever the first tiebreak: whatever the list was ranked by — distance,
+ * rating, last ordered — still decides the order within each group, so a
+ * closed shop is pushed down the list rather than out of it.
+ */
+export function openFirst(a: Store, b: Store, now = new Date()): number {
+  return Number(isOpenNow(b, now)) - Number(isOpenNow(a, now))
+}
+
+/** Open when the local clock falls inside the shop's hours, and it is not shut. */
 export function isOpenNow(store: Store, now = new Date()): boolean {
+  if (store.temporarilyClosed) return false
   const hour = now.getHours()
   return hour >= store.hours.opensAt && hour < store.hours.closesAt
 }

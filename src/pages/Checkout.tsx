@@ -13,6 +13,7 @@ import {
 import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AbaPayment } from '../components/AbaPayment'
+import { CardPayment } from '../components/CardPayment'
 import { OptionSheet } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { OrderPlaced } from '../components/OrderPlaced'
@@ -38,7 +39,8 @@ const PAYMENTS: { value: PaymentKey; label: string; note: string; icon: typeof B
 ]
 
 export default function Checkout() {
-  const { cart, cartTotal, cartStore, placeOrder, address, setAddress, coords } = useApp()
+  const { cartLines, cartTotal, cartStore, placeOrder, address, setAddress, coords, user, openAuth } =
+    useApp()
   const navigate = useNavigate()
 
   const [speed, setSpeed] = useState<DeliveryKey>('standard')
@@ -48,7 +50,7 @@ export default function Checkout() {
   // Minted once when the sheet opens, not per render: the reference is printed
   // in the QR, and a value that changed on re-render would redraw the code the
   // shopper is part-way through scanning.
-  const [abaReference, setAbaReference] = useState<string | null>(null)
+  const [paying, setPaying] = useState<{ method: 'aba' | 'card'; reference: string } | null>(null)
   // Placing the order empties the cart, so the receipt keeps its own copy of
   // what was bought rather than reading a cart that is already gone.
   const [placed, setPlaced] = useState<{ order: Order; store: Store; reference: string } | null>(
@@ -72,7 +74,7 @@ export default function Checkout() {
     )
   }
 
-  const lines = cart
+  const lines = cartLines
     .map((item) => ({ item, product: getProduct(item.productId) }))
     .filter((line): line is { item: typeof line.item; product: NonNullable<typeof line.product> } =>
       Boolean(line.product),
@@ -109,10 +111,22 @@ export default function Checkout() {
   const total = cartTotal + choice.fee - voucher
 
   const label = PAYMENTS.find((option) => option.value === payment)?.label ?? 'Cash on delivery'
+  const newReference = () =>
+    `PL-${cartStore.id.slice(0, 6).toUpperCase()}-${Date.now().toString().slice(-6)}`
 
+  /** Both prepaid methods end the same way: record the order, show the ticket. */
+  const collect = () => {
+    if (!paying) return
+    const order = placeOrder(total, label)
+    const reference = paying.reference
+    setPaying(null)
+    if (order) setPlaced({ order, store: cartStore, reference })
+  }
+
+  /** Cash settles on delivery, but it ends on the same receipt as the rest. */
   const confirm = () => {
     const order = placeOrder(total, label)
-    if (order) navigate(`/order/${order.id}`)
+    if (order) setPlaced({ order, store: cartStore, reference: newReference() })
   }
 
   const baseMinutes = deliveryMinutes(cartStore.prepMinutes, distanceKm(coords, cartStore))
@@ -259,33 +273,43 @@ export default function Checkout() {
           <button
             type="button"
             onClick={() => {
-              if (payment === 'aba') {
-                setAbaReference(
-                  `PL-${cartStore.id.slice(0, 6).toUpperCase()}-${Date.now().toString().slice(-6)}`,
-                )
+              // An order belongs to someone: no account, no checkout.
+              if (!user) {
+                openAuth('login')
+                return
+              }
+              if (payment === 'aba' || payment === 'card') {
+                setPaying({ method: payment, reference: newReference() })
                 return
               }
               confirm()
             }}
             className="btn-primary w-full rounded-full py-3"
           >
-            {payment === 'aba' ? 'Pay with ABA' : 'Place order'} — {formatPrice(total)}
+            {!user
+              ? 'Log in to place this order'
+              : payment === 'aba'
+                ? 'Pay with ABA'
+                : payment === 'card'
+                  ? 'Pay by card'
+                  : 'Place order'}{' '}
+            — {formatPrice(total)}
           </button>
         </div>
       </div>
 
-      {abaReference && (
+      {paying?.method === 'aba' && (
         <AbaPayment
           store={cartStore}
           amount={total}
-          reference={abaReference}
-          onPaid={() => {
-            const order = placeOrder(total, label)
-            setAbaReference(null)
-            if (order) setPlaced({ order, store: cartStore, reference: abaReference })
-          }}
-          onClose={() => setAbaReference(null)}
+          reference={paying.reference}
+          onPaid={collect}
+          onClose={() => setPaying(null)}
         />
+      )}
+
+      {paying?.method === 'card' && (
+        <CardPayment amount={total} onPaid={collect} onClose={() => setPaying(null)} />
       )}
 
       {speedSheet && (

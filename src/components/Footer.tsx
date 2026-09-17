@@ -47,12 +47,10 @@ export function Footer() {
         <div className="my-7 h-px bg-white/15" />
 
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            to="/"
-            className="inline-flex rounded-xl bg-white px-4 py-2.5"
-            aria-label="PharmaLink home"
-          >
-            <Logo variant="full" height={60} />
+          {/* Knocked out and painted white: the artwork's own navy would all
+              but vanish against the footer. */}
+          <Link to="/" className="inline-flex" aria-label="PharmaLink home">
+            <Logo variant="fullLight" height={64} className="brightness-0 invert" />
           </Link>
 
           <div className="flex items-center gap-2">

@@ -3,6 +3,8 @@ import type { PackagingKind, Product, ProductUnit } from '../data/types'
 export interface PackagingOption {
   kind: PackagingKind
   label: string
+  /** The form on its own, without the amount — "Strip", "Full bottle". */
+  short: string
   /** Units in one of these. Undefined when the shopper types the amount. */
   units?: number
   /** Smallest and largest amount accepted when the shopper types it. */
@@ -55,7 +57,13 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
 
   if (unit === 'item') {
     return [
-      { kind: 'box', units: 1, label: 'Single item', note: 'Sold whole — cannot be split' },
+      {
+        kind: 'box',
+        units: 1,
+        label: 'Single item',
+        short: 'Single item',
+        note: 'Sold whole — cannot be split',
+      },
     ]
   }
 
@@ -63,6 +71,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
     kind: 'box',
     units: size,
     label: `Full ${packWord(unit)} (${size} ${unitLabel(unit, size)})`,
+    short: `Full ${packWord(unit)}`,
     note: 'The complete pack',
   }
 
@@ -74,6 +83,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
         kind: 'strip',
         units: small,
         label: `Small bottle (${small}${unit})`,
+        short: 'Small bottle',
         note: 'Decanted into a travel bottle',
       },
       {
@@ -83,6 +93,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
         suggested: 5,
         note: 'A tester amount',
         label: 'Sample',
+        short: 'Sample',
       },
       {
         kind: 'custom',
@@ -90,6 +101,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
         max: size * 4,
         suggested: size,
         label: 'Custom amount',
+        short: 'Custom',
         note: `Any amount in ${unit}`,
       },
     ]
@@ -107,6 +119,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
       kind: 'strip',
       units: strip,
       label: `${partLabel} (${strip} ${unitLabel(unit, strip)})`,
+      short: partLabel,
       note: 'Part of a pack',
     })
   }
@@ -118,6 +131,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
       max: Math.max(1, Math.floor(size / 2)),
       suggested: Math.min(5, size),
       label: `Loose ${unitLabel(unit, 2)} / Sample`,
+      short: 'Loose',
       note: 'Counted out for you',
     },
     {
@@ -126,6 +140,7 @@ export function packagingFor(product: Product, size = product.packSize): Packagi
       max: size * 4,
       suggested: size,
       label: 'Custom amount',
+      short: 'Custom',
       note: `Any number of ${unitLabel(unit, 2)}`,
     },
   )
@@ -159,4 +174,49 @@ export function itemListPrice(product: Product, units: number): number {
 /** Money is only ever shown to the cent, so lines must round the same way. */
 export function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+/** One of the fixed forms a shop lists a product in. */
+export interface Variant {
+  kind: PackagingKind
+  units: number
+  /** "Strip · 10 tablets" */
+  label: string
+  /** What one of these costs, after any discount. */
+  price: number
+  soldOut: boolean
+}
+
+/**
+ * The variants the cart can switch a line between.
+ *
+ * "Custom amount" is left out on purpose: it is a number the shopper types on
+ * the product page, not one of the shop's own listed forms.
+ */
+export function variantsFor(product: Product, size = product.packSize): Variant[] {
+  return packagingFor(product, size)
+    .filter((option) => option.kind !== 'custom')
+    .map((option) => {
+      const units = option.units ?? option.suggested ?? option.min ?? 1
+      return {
+        kind: option.kind,
+        units,
+        label: `${option.short} · ${units} ${unitLabel(product.unit, units)}`,
+        price: roundMoney(itemPrice(product, units)),
+        soldOut: product.soldOut?.includes(option.kind) ?? false,
+      }
+    })
+}
+
+/** How one line's form and amount read, wherever they are shown. */
+export function describeAmount(
+  product: Product,
+  packaging: PackagingKind,
+  units: number,
+  size?: number,
+): string {
+  const option = packagingFor(product, size ?? product.packSize).find(
+    (candidate) => candidate.kind === packaging,
+  )
+  return `${option?.short ?? 'Custom'} · ${units} ${unitLabel(product.unit, units)}`
 }

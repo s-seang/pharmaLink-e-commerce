@@ -4,14 +4,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { StoreRow } from '../components/StoreRow'
 import { useApp } from '../context/AppContext'
-import { STORE_FILTERS, stores, type StoreType } from '../data'
+import { openFirst, STORE_FILTERS, stores, type StoreType } from '../data'
 import { distanceKm } from '../lib/geo'
 
 type SortKey = 'distance' | 'rating'
 
 export default function Stores() {
   const navigate = useNavigate()
-  const { coords } = useApp()
+  const { coords, now } = useApp()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('distance')
@@ -41,8 +41,12 @@ export default function Stores() {
           store.branch.toLowerCase().includes(needle) ||
           store.address.toLowerCase().includes(needle),
       )
-      .sort((a, b) => (sort === 'distance' ? a.km - b.km : b.store.rating - a.store.rating))
-  }, [coords, query, sort, type])
+      .sort(
+        (a, b) =>
+          openFirst(a.store, b.store, now) ||
+          (sort === 'distance' ? a.km - b.km : b.store.rating - a.store.rating),
+      )
+  }, [coords, query, sort, type, now])
 
   return (
     <Layout header="none">

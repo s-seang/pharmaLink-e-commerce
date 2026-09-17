@@ -2,6 +2,9 @@ import { Bike, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { bestDiscount, leadingCategory, type Store } from '../data'
 import { deliveryMinutes, formatDistance, formatEta } from '../lib/geo'
+import { useApp } from '../context/AppContext'
+import { isOpenNow } from '../data'
+import { OpenBadge } from './OpenBadge'
 
 /**
  * A pharmacy as a full-width promotional card: a branded banner, then the
@@ -22,11 +25,16 @@ export function StoreBannerCard({
   /** Optional line under the card, e.g. when it was last ordered from. */
   footnote?: string
 }) {
+  const { now } = useApp()
   const discount = bestDiscount(store.id)
   const sells = leadingCategory(store)
+  const shut = !isOpenNow(store, now)
 
   return (
-    <Link to={`/store/${store.id}`} className="group block">
+    <Link
+      to={`/store/${store.id}`}
+      className={`group block ${shut ? 'opacity-60 hover:opacity-100' : ''}`}
+    >
       <div
         className="relative overflow-hidden rounded-card"
         style={{ backgroundColor: store.logoColor }}
@@ -83,6 +91,8 @@ export function StoreBannerCard({
         <Bike size={15} className="shrink-0 text-navy" />
         {formatDistance(km)} away
       </p>
+
+      <OpenBadge store={store} className="mt-1" />
 
       {discount > 0 && (
         <span className="mt-2 inline-flex rounded-full bg-sale/10 px-2.5 py-1 text-sm font-semibold text-sale">

@@ -1,23 +1,19 @@
-import { MessageSquareText, Phone } from 'lucide-react'
+import { MessageSquareText } from 'lucide-react'
 import { useFooterClearance } from '../hooks/useFooterClearance'
 import { useIsTouch } from '../hooks/useIsTouch'
-import { telHref } from '../lib/geo'
 
 /**
- * The store page's floating actions: call on top, text underneath.
+ * The store page's floating action: text the pharmacy.
  *
- * Phones get compact circles — there is no hover there, so permanent pills
- * would just sit on top of the products. Pointer devices get the full pills
- * with labels. The stack lifts to rest above the footer rather than floating
- * over it.
+ * Calling lives inside the chat sheet now — one way in to talking to a shop,
+ * with the choice of how made in there. Phones get a compact circle, since
+ * there is no hover to reveal a label; pointer devices get the full pill.
  */
 export function StoreFabs({
-  phone,
   storeName,
   onText,
   hidden = false,
 }: {
-  phone: string
   storeName: string
   onText: () => void
   /** Stays out of the way while the chat sheet is up. */
@@ -33,18 +29,6 @@ export function StoreFabs({
         hidden ? 'pointer-events-none opacity-0' : 'opacity-100'
       }`}
     >
-      <a
-        href={telHref(phone)}
-        aria-label="Consult here"
-        title={`Call ${storeName}`}
-        className={`flex h-12 items-center justify-center rounded-full bg-teal text-white shadow-lg ring-2 ring-white transition-colors hover:bg-teal/90 focus-visible:outline-none focus-visible:ring-4 ${
-          isTouch ? 'w-12' : 'gap-2 px-4'
-        }`}
-      >
-        <Phone size={20} className="shrink-0" />
-        {!isTouch && <span className="whitespace-nowrap text-sm font-semibold">Consult here</span>}
-      </a>
-
       <TextFab onText={onText} storeName={storeName} isTouch={isTouch} />
     </div>
   )

@@ -19,6 +19,7 @@ export const products: Product[] = [
     discountPercent: 20,
     unit: 'tablet',
     packSize: 20,
+    soldOut: ['loose'],
     imageSeed: 1,
   },
   {
@@ -255,6 +256,7 @@ export const products: Product[] = [
     unit: 'ml',
     packSize: 30,
     sizes: [18, 30, 60],
+    soldOut: ['strip'],
     imageSeed: 13,
   },
   {

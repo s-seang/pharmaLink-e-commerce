@@ -1,10 +1,22 @@
-import { ArrowRight, ChevronRight, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
+import {
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatPrice, getProduct, type CartLine, type Product } from '../data'
 import { FREE_DELIVERY_OVER, STANDARD_FEE } from '../lib/delivery'
-import { defaultUnitType, optionTags } from '../lib/itemTypes'
-import { itemListPrice, unitLabel } from '../lib/packaging'
+import { optionTags } from '../lib/itemTypes'
+import { VariantSheet } from './VariantSheet'
+import { describeAmount, itemListPrice, variantsFor } from '../lib/packaging'
+import { OpenBadge } from './OpenBadge'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
 
@@ -12,18 +24,20 @@ export function CartDrawer() {
   const {
     cartOpen,
     closeCart,
-    cart,
+    cartLines,
     cartTotal,
     cartStore,
     setQuantity,
+    setVariant,
     removeFromCart,
-    clearCart,
+    clearStoreCart,
   } = useApp()
   const navigate = useNavigate()
+  const [editing, setEditing] = useState<string | null>(null)
 
   if (!cartOpen) return null
 
-  const lines = cart
+  const lines = cartLines
     .map((item) => ({ item, product: getProduct(item.productId) }))
     .filter((line): line is { item: typeof line.item; product: NonNullable<typeof line.product> } =>
       Boolean(line.product),
@@ -35,6 +49,7 @@ export function CartDrawer() {
     (sum, { item, product }) => sum + itemListPrice(product, item.units) * item.quantity,
     0,
   )
+  const editingLine = lines.find((line) => line.item.lineId === editing)
   const discount = subtotal - cartTotal
   const delivery = cartTotal >= FREE_DELIVERY_OVER ? 0 : STANDARD_FEE
   const total = cartTotal + delivery
@@ -63,7 +78,7 @@ export function CartDrawer() {
           {lines.length > 0 ? (
             <button
               type="button"
-              onClick={clearCart}
+              onClick={() => cartStore && clearStoreCart(cartStore.id)}
               className="rounded-lg px-1.5 py-1 text-sm font-semibold text-muted transition-colors hover:text-sale"
             >
               Clear
@@ -97,6 +112,7 @@ export function CartDrawer() {
                     <p className="truncate text-xs text-muted">
                       {cartStore.branch} · delivering this order
                     </p>
+                    <OpenBadge store={cartStore} />
                   </div>
                   <ChevronRight size={18} className="shrink-0 text-muted" />
                 </Link>
@@ -121,7 +137,22 @@ export function CartDrawer() {
                       >
                         {product.name}
                       </Link>
-                      <p className="mt-0.5 text-xs text-muted">{describeLine(item, product)}</p>
+                      {/* The variant is the one part of a line that can be
+                          changed here: tapping it opens the shop's list. */}
+                      {variantsFor(product, item.size).length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditing(item.lineId)}
+                          aria-haspopup="dialog"
+                          aria-label={`Change variant of ${product.name}, currently ${describeLine(item, product)}`}
+                          className="mt-1 inline-flex max-w-full items-center gap-1.5 rounded-full border border-line bg-surface py-1 pl-3 pr-2 text-left text-xs font-medium text-ink transition-colors hover:border-navy hover:text-navy"
+                        >
+                          <span className="truncate">{describeLine(item, product)}</span>
+                          <ChevronDown size={15} className="shrink-0 text-navy" />
+                        </button>
+                      ) : (
+                        <p className="mt-0.5 text-xs text-muted">{describeLine(item, product)}</p>
+                      )}
                       {optionTags(item, product).length > 0 && (
                         <ul className="mt-1 flex flex-wrap gap-1">
                           {optionTags(item, product).map((tag) => (
@@ -225,6 +256,18 @@ export function CartDrawer() {
           </>
         )}
       </aside>
+
+      {editingLine && (
+        <VariantSheet
+          line={editingLine.item}
+          product={editingLine.product}
+          onChoose={(variant) => {
+            setVariant(editingLine.item.lineId, variant)
+            setEditing(null)
+          }}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   )
 }
@@ -248,16 +291,6 @@ function SummaryRow({
 
 /** "Full box · 20 tablets" — how this line was put together. */
 function describeLine(item: CartLine, product: Product): string {
-  const form = item.unitType ?? defaultUnitType(product)
-  const amount = `${item.units} ${unitLabel(product.unit, item.units)}`
-  if (product.unit === 'item') return form
-  const how =
-    item.packaging === 'box'
-      ? 'Full pack'
-      : item.packaging === 'strip'
-        ? 'Part pack'
-        : item.packaging === 'loose'
-          ? 'Loose'
-          : 'Custom'
-  return `${form} · ${how} · ${amount}`
+  if (product.unit === 'item') return 'Single item'
+  return describeAmount(product, item.packaging, item.units, item.size)
 }

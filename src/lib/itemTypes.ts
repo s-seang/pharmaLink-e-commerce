@@ -88,7 +88,13 @@ export function volumeUnit(product: Product): 'ml' | 'g' {
   return product.unit === 'g' ? 'g' : 'ml'
 }
 
-/** The chosen extras, short enough to sit as chips under a cart line. */
+/**
+ * The chosen extras, short enough to sit as chips under a cart line.
+ *
+ * The form is deliberately not among them. The line above already names it as
+ * part of the variant — "Full box · 20 tablets" — and a second label beside it
+ * could disagree with that the moment the variant was switched.
+ */
 export function optionTags(line: CartLine, product: Product): string[] {
   const tags: string[] = []
   if (line.volume) tags.push(`${line.volume} ${volumeUnit(product)}`)

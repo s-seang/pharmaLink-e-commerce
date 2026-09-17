@@ -65,16 +65,30 @@ export const SYMPTOMS = [
 ] as const
 export type Symptom = (typeof SYMPTOMS)[number]
 
-/** What kind of shop sells it. Shown under "Filter by store" in the header. */
-export type StoreType = 'Medicine' | 'Pharmacy'
+/**
+ * What kind of shop this is. Shown under "Filter by store" in the header.
+ *
+ * A shop is "Skincare" when skincare is the biggest thing it stocks — several
+ * of these pharmacies run a real dermatology counter, and that is what someone
+ * filtering for skincare is looking for.
+ */
+export type StoreType = 'Pharmacy' | 'Skincare'
 
 /** Every category that exists in the catalogue. */
 export const CATEGORIES: Category[] = ['Medicine', 'Cosmetic', 'Supplement', 'Medical Equipment']
 
-/** The product chips in the header — Medicine is reached through the store filter. */
-export const PRODUCT_FILTERS: Category[] = ['Cosmetic', 'Supplement', 'Medical Equipment']
+/**
+ * The product chips in the header. Medicine is one of them: it used to be
+ * reached through the store filter, which no longer has a Medicine chip.
+ */
+export const PRODUCT_FILTERS: Category[] = [
+  'Medicine',
+  'Cosmetic',
+  'Supplement',
+  'Medical Equipment',
+]
 
-export const STORE_FILTERS: StoreType[] = ['Medicine', 'Pharmacy']
+export const STORE_FILTERS: StoreType[] = ['Pharmacy', 'Skincare']
 
 export interface OpeningHours {
   /** Human readable, e.g. "Mon–Sat, 7:00 – 21:00" */
@@ -119,6 +133,12 @@ export interface Store {
   lat: number
   lng: number
   hours: OpeningHours
+  /**
+   * Shut today whatever the hours say — a pharmacist off sick, a closure for
+   * stocktaking. Overrides {@link OpeningHours} rather than editing it, so the
+   * shop's normal times still show on its page.
+   */
+  temporarilyClosed?: boolean
   description?: string
   contactPerson?: string
   pharmacist?: string
@@ -167,6 +187,12 @@ export interface Product {
    */
   itemCategory?: ItemCategory
   unitType?: string
+  /**
+   * Forms this shop has run out of. They still show in the variant list, so a
+   * shopper can see the shop stocks them, but cannot be picked. Mock, like the
+   * prices — there is no stock system behind this app.
+   */
+  soldOut?: PackagingKind[]
   /** Seed for the generated placeholder artwork. */
   imageSeed: number
 }

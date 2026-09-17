@@ -1,3 +1,4 @@
+import { useApp } from '../context/AppContext'
 import { isOpenNow, type Store } from '../data'
 
 export function OpenBadge({
@@ -10,7 +11,8 @@ export function OpenBadge({
   tone?: 'default' | 'light'
   className?: string
 }) {
-  const open = isOpenNow(store)
+  const { now } = useApp()
+  const open = isOpenNow(store, now)
   const light = tone === 'light'
 
   return (

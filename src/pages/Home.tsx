@@ -2,17 +2,26 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { BannerCarousel } from '../components/BannerCarousel'
 import { DiscountGrid } from '../components/DiscountGrid'
+import { OfferRail } from '../components/OfferRail'
 import { FilterSelect, type FilterOption } from '../components/FilterBar'
 import { Layout } from '../components/Layout'
 import { OrderAgainRow } from '../components/OrderAgainRow'
 import { SectionHeader } from '../components/SectionHeader'
 import { StoreRow } from '../components/StoreRow'
 import { useApp } from '../context/AppContext'
-import { leadingCategory, orderedStores, stocksCategory, stores, type Store } from '../data'
+import {
+  bestDiscount,
+  leadingCategory,
+  openFirst,
+  orderedStores,
+  stocksCategory,
+  stores,
+  type Store,
+} from '../data'
 import { deliveryMinutes, distanceKm } from '../lib/geo'
 
 type SortKey = 'fast' | 'distance' | 'rating' | 'popular'
-type OfferKey = 'any' | 'free-delivery'
+type OfferKey = 'any' | 'free-delivery' | 'voucher'
 type ShopKey =
   | 'All'
   | 'Skincare Store'
@@ -31,7 +40,8 @@ const SORT_OPTIONS: FilterOption<SortKey>[] = [
 
 const OFFER_OPTIONS: FilterOption<OfferKey>[] = [
   { value: 'any', label: 'Any offer' },
-  { value: 'free-delivery', label: 'Free delivery voucher' },
+  { value: 'free-delivery', label: 'Free delivery' },
+  { value: 'voucher', label: 'Voucher' },
 ]
 
 const SHOP_OPTIONS: FilterOption<ShopKey>[] = [
@@ -63,8 +73,18 @@ function matchesShopFilter(store: Store, filter: ShopKey): boolean {
   }
 }
 
+/**
+ * The two offers a shop can be running: delivery on the house, or money off
+ * the products themselves.
+ */
+function matchesOffer(store: Store, offer: OfferKey): boolean {
+  if (offer === 'free-delivery') return store.freeDelivery === true
+  if (offer === 'voucher') return bestDiscount(store.id) > 0
+  return true
+}
+
 export default function Home() {
-  const { coords, locationStatus, requestLocation, orders } = useApp()
+  const { coords, locationStatus, requestLocation, orders, now } = useApp()
 
   const [sort, setSort] = useState<SortKey>('fast')
   const [offer, setOffer] = useState<OfferKey>('any')
@@ -79,22 +99,36 @@ export default function Home() {
     [coords],
   )
 
-  /** Purely by distance — this box answers one question and takes no filters. */
-  const nearest = useMemo(() => [...withDistance].sort((a, b) => a.km - b.km), [withDistance])
+  /**
+   * Somewhere that can take the order right now, closest first. A shut
+   * pharmacy 200m away is no use, so open ones lead and the closed ones keep
+   * their distance order behind them.
+   */
+  const nearest = useMemo(
+    () =>
+      [...withDistance].sort(
+        (a, b) => openFirst(a.store, b.store, now) || a.km - b.km,
+      ),
+    [withDistance, now],
+  )
 
   const ordered = useMemo(() => {
     const km = new Map(withDistance.map(({ store, km }) => [store.id, km]))
-    return orderedStores(orders).map(({ store }) => ({ store, km: km.get(store.id) ?? 0 }))
-  }, [withDistance, orders])
+    return orderedStores(orders)
+      .map(({ store }) => ({ store, km: km.get(store.id) ?? 0 }))
+      .sort((a, b) => openFirst(a.store, b.store, now))
+  }, [withDistance, orders, now])
 
   /** The browse list, which is what the filter row below it drives. */
   const browse = useMemo(() => {
     const filtered = withDistance.filter(
       ({ store }) =>
-        matchesShopFilter(store, shop) && (offer === 'any' || store.freeDelivery === true),
+        matchesShopFilter(store, shop) && matchesOffer(store, offer),
     )
 
     return filtered.sort((a, b) => {
+      const open = openFirst(a.store, b.store, now)
+      if (open !== 0) return open
       if (sort === 'distance') return a.km - b.km
       if (sort === 'rating') return b.store.rating - a.store.rating
       // No order counts without a backend, so reviews stand in for how busy a shop is.
@@ -103,7 +137,7 @@ export default function Home() {
         deliveryMinutes(a.store.prepMinutes, a.km) - deliveryMinutes(b.store.prepMinutes, b.km)
       )
     })
-  }, [withDistance, shop, offer, sort])
+  }, [withDistance, shop, offer, sort, now])
 
   const filtersActive = sort !== 'fast' || offer !== 'any' || shop !== 'All'
 
@@ -119,6 +153,8 @@ export default function Home() {
         <section>
           <BannerCarousel />
         </section>
+
+        <OfferRail />
 
         <section className="rounded-card bg-surface p-4">
           <SectionHeader
@@ -151,8 +187,8 @@ export default function Home() {
             title="Nearest to you"
             subtitle={
               locationStatus === 'granted'
-                ? 'Based on your current location'
-                : 'Showing pharmacies near central Phnom Penh'
+                ? 'Open now first, then closest to you'
+                : 'Near central Phnom Penh — open pharmacies first'
             }
             viewAllTo="/stores"
             viewAllLabel="View all pharmacies"

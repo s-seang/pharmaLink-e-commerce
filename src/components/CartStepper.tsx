@@ -1,7 +1,9 @@
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Minus, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import type { Product } from '../data'
+import { variantsFor } from '../lib/packaging'
+import { VariantSheet } from './VariantSheet'
 
 /** How long the stepper stays open before folding back to the count. */
 const COLLAPSE_AFTER = 3000
@@ -9,6 +11,8 @@ const COLLAPSE_AFTER = 3000
 /** Closed: one round button. Open: trash + count + add, side by side. */
 const CLOSED_WIDTH = 40
 const OPEN_WIDTH = 112
+/** A caret next to the count needs a little more room between the two ends. */
+const OPEN_WIDTH_WITH_VARIANTS = 128
 
 /**
  * The add control on product card artwork. It has three states:
@@ -31,14 +35,18 @@ const OPEN_WIDTH = 112
  * two controls swapping places.
  */
 export function CartStepper({ product }: { product: Product }) {
-  const { cartStoreId, addToCart, defaultLine, setQuantity, removeFromCart } = useApp()
+  const { addToCart, defaultLine, setQuantity, removeFromCart, setVariant } = useApp()
   // Only the whole-pack line: a part-pack configured on the product page is not
   // something a `+` in a grid should be quietly changing.
   const line = defaultLine(product.id)
   const quantity = line?.quantity ?? 0
 
   const [open, setOpen] = useState(false)
+  const [sheet, setSheet] = useState(false)
   const timer = useRef<number | undefined>(undefined)
+
+  // Only worth a caret where the shop lists the product more than one way.
+  const multiVariant = variantsFor(product).length > 1
 
   const openFor = useCallback((ms: number = COLLAPSE_AFTER) => {
     window.clearTimeout(timer.current)
@@ -48,16 +56,9 @@ export function CartStepper({ product }: { product: Product }) {
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  /**
-   * An add from another pharmacy is held back for the one-cart-per-pharmacy
-   * prompt, so there is nothing to count up yet — leave the control closed
-   * rather than opening a stepper over a product that was not added.
-   */
-  const heldForPrompt = cartStoreId !== null && cartStoreId !== product.storeId
-
   const add = () => {
     addToCart(product.id)
-    if (!heldForPrompt) openFor()
+    openFor()
   }
 
   // The open state is gated on a non-zero quantity, so emptying the line folds
@@ -68,8 +69,11 @@ export function CartStepper({ product }: { product: Product }) {
   const fade = 'transition-opacity duration-200 ease-out motion-reduce:transition-none'
 
   return (
+    <>
     <div
-      style={{ width: expanded ? OPEN_WIDTH : CLOSED_WIDTH }}
+      style={{
+        width: expanded ? (multiVariant ? OPEN_WIDTH_WITH_VARIANTS : OPEN_WIDTH) : CLOSED_WIDTH,
+      }}
       className={`absolute bottom-2 right-2 h-10 rounded-full border shadow-md transition-[width,background-color,border-color] duration-300 ease-out motion-reduce:transition-none ${
         counting ? 'border-transparent bg-navy-deep' : 'border-line bg-white'
       }`}
@@ -89,11 +93,32 @@ export function CartStepper({ product }: { product: Product }) {
       <span
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-bold ${fade} ${
-          quantity > 0 ? 'opacity-100' : 'opacity-0'
+          quantity > 0 && !(expanded && multiVariant) ? 'opacity-100' : 'opacity-0'
         } ${counting ? 'text-white' : 'text-ink'}`}
       >
         {quantity}
       </span>
+
+      {/* The count doubles as the variant picker once the pill is open. */}
+      {multiVariant && (
+        <button
+          type="button"
+          onClick={() => {
+            setSheet(true)
+            openFor(COLLAPSE_AFTER * 2)
+          }}
+          tabIndex={expanded ? 0 : -1}
+          aria-hidden={!expanded}
+          aria-haspopup="dialog"
+          aria-label={`${quantity} in cart — change variant of ${product.name}`}
+          className={`absolute left-10 right-10 top-0 flex h-10 items-center justify-center gap-0.5 rounded-full text-sm font-bold text-ink ${fade} ${
+            expanded ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        >
+          {quantity}
+          <ChevronDown size={12} className="shrink-0 text-muted" />
+        </button>
+      )}
 
       <button
         type="button"
@@ -137,5 +162,18 @@ export function CartStepper({ product }: { product: Product }) {
         <Plus size={20} />
       </button>
     </div>
+
+    {sheet && line && (
+      <VariantSheet
+        line={line}
+        product={product}
+        onChoose={(variant) => {
+          setVariant(line.lineId, variant)
+          setSheet(false)
+        }}
+        onClose={() => setSheet(false)}
+      />
+    )}
+    </>
   )
 }

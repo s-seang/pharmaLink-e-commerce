@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { finalPrice, formatPrice, topPicks, type Store } from '../data'
 import { deliveryMinutes, formatEta } from '../lib/geo'
 import { CartStepper } from './CartStepper'
+import { OpenBadge } from './OpenBadge'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
 
@@ -29,6 +30,7 @@ export function OrderAgainRow({ store, km }: { store: Store; km: number }) {
               <Bike size={13} className="shrink-0 text-navy" />
               {formatEta(deliveryMinutes(store.prepMinutes, km))} · {store.branch}
             </p>
+            <OpenBadge store={store} className="mt-0.5" />
             {store.freeDelivery && (
               <span className="mt-1 inline-flex rounded-full bg-teal-tint px-2 py-0.5 text-[11px] font-bold text-teal">
                 Free delivery voucher

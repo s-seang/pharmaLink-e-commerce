@@ -2,6 +2,7 @@ import { Search, ShoppingCart, User } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useCartEntry } from '../hooks/useCartEntry'
 import { PRODUCT_FILTERS, STORE_FILTERS } from '../data'
 import { useHideOnScroll } from '../hooks/useHideOnScroll'
 import { Logo } from './Logo'
@@ -84,7 +85,7 @@ export function Header() {
 }
 
 function LogoBar() {
-  const { user, openAuth } = useApp()
+  const { user } = useApp()
 
   return (
     <div className="app-container flex items-center justify-between gap-3 py-2.5">
@@ -104,14 +105,13 @@ function LogoBar() {
           <span className="max-w-[9rem] truncate text-sm font-semibold">{user.name}</span>
         </Link>
       ) : (
-        <button
-          type="button"
-          onClick={() => openAuth('login')}
+        <Link
+          to="/account"
           className="flex items-center gap-1.5 rounded-lg px-1.5 py-2 text-navy-deep transition-colors hover:bg-navy-tint"
         >
           <User size={22} />
           <span className="text-sm font-semibold">Log in</span>
-        </button>
+        </Link>
       )}
     </div>
   )
@@ -119,7 +119,8 @@ function LogoBar() {
 
 function SearchBar() {
   const navigate = useNavigate()
-  const { openCart, cartCount } = useApp()
+  const { cartCount } = useApp()
+  const openTheCart = useCartEntry()
   const [query, setQuery] = useState('')
 
   const submitSearch = (event: FormEvent) => {
@@ -149,7 +150,7 @@ function SearchBar() {
 
       <button
         type="button"
-        onClick={openCart}
+        onClick={openTheCart}
         className="relative shrink-0 rounded-lg p-2 text-navy-deep transition-colors hover:bg-navy-tint"
         aria-label={`Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`}
       >

@@ -18,8 +18,25 @@ import { Layout } from '../components/Layout'
 import { OpenBadge } from '../components/OpenBadge'
 import { StarRating } from '../components/StarRating'
 import { StoreLogo } from '../components/StoreLogo'
-import { CATEGORIES, getStore, productsByStore, type Category } from '../data'
+import {
+  CATEGORIES,
+  getStore,
+  isOpenNow,
+  productsByStore,
+  type Category,
+  type Store,
+} from '../data'
+import { useApp } from '../context/AppContext'
 import { directionsUrl } from '../lib/geo'
+
+/**
+ * When a shut pharmacy takes orders again. A shop closed for the day has no
+ * hour to quote, so it falls back to the hours it normally keeps.
+ */
+function reopensAt(store: Store): string {
+  if (store.temporarilyClosed) return `it reopens. Usual hours: ${store.hours.label}`
+  return `${String(store.hours.opensAt).padStart(2, '0')}:00`
+}
 
 export default function StorePage() {
   const { id } = useParams()
@@ -27,6 +44,8 @@ export default function StorePage() {
   const store = getStore(id)
   const [filter, setFilter] = useState<Category | 'All'>('All')
   const [chatOpen, setChatOpen] = useState(false)
+  const [laterOrder, setLaterOrder] = useState(false)
+  const { now } = useApp()
 
   const storeProducts = useMemo(() => (store ? productsByStore(store.id) : []), [store])
 
@@ -61,13 +80,15 @@ export default function StorePage() {
     store.phone ||
     store.description
 
+  const shut = !isOpenNow(store, now)
+
   const countFor = (category: Category | 'All') =>
     category === 'All'
       ? storeProducts.length
       : storeProducts.filter((product) => product.category === category).length
 
   return (
-    <Layout header="none" floatingCart={false} cartBar>
+    <Layout header="none" floatingCart={false} cartBarStore={store.id}>
       <div data-store-band className="bg-navy-deep text-white">
         <div className="app-container py-4">
           <button
@@ -102,6 +123,37 @@ export default function StorePage() {
           </a>
         </div>
       </div>
+
+      {shut && (
+        <div className="app-container pt-4">
+          <section className="card flex flex-col gap-3 border-star/40 bg-star/5 p-4 sm:flex-row sm:items-center">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-star/15 text-star">
+              <Clock size={18} />
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink">
+                {store.name} is not available until {reopensAt(store)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {laterOrder
+                  ? 'Saved for later — add what you need and the pharmacy will prepare it when it opens.'
+                  : 'You can still fill your cart now and have it prepared as soon as they open.'}
+              </p>
+            </div>
+
+            {!laterOrder && (
+              <button
+                type="button"
+                onClick={() => setLaterOrder(true)}
+                className="btn-primary shrink-0 sm:w-auto"
+              >
+                Order for later
+              </button>
+            )}
+          </section>
+        </div>
+      )}
 
       <div className="app-container space-y-7 py-5">
         {hasAbout && (
@@ -194,7 +246,6 @@ export default function StorePage() {
       </div>
 
       <StoreFabs
-        phone={store.phone}
         storeName={store.name}
         onText={() => setChatOpen(true)}
         hidden={chatOpen}

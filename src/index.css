@@ -69,3 +69,38 @@
     @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-navy;
   }
 }
+
+/* A sheet rises from the bottom edge rather than appearing on the spot, which
+   is what makes it read as a sheet and not a dialog that happens to be low. */
+@keyframes sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sheet-panel {
+  animation: sheet-rise 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sheet-scrim {
+  animation: scrim-in 240ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-panel,
+  .sheet-scrim {
+    animation: none;
+  }
+}

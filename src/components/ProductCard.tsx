@@ -2,6 +2,7 @@ import { Heart, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { finalPrice, formatPrice, getStore, type Product } from '../data'
+import { itemListPrice, roundMoney } from '../lib/packaging'
 import { CartStepper } from './CartStepper'
 import { ProductImage } from './ProductImage'
 import { StoreLogo } from './StoreLogo'
@@ -28,11 +29,17 @@ export function ProductCard({
    */
   action?: 'favourite' | 'none'
 }) {
-  const { toggleFavourite, isFavourite } = useApp()
+  const { toggleFavourite, isFavourite, defaultLine } = useApp()
   const store = getStore(product.storeId)
   const discounted = (product.discountPercent ?? 0) > 0
-  const price = finalPrice(product)
   const favourite = isFavourite(product.id)
+
+  // Once it is in the cart the card quotes what was actually picked, so
+  // switching to a strip on the stepper is reflected here rather than leaving
+  // the shelf price sitting over a different variant.
+  const line = defaultLine(product.id)
+  const price = line ? line.price : finalPrice(product)
+  const listPrice = line ? roundMoney(itemListPrice(product, line.units)) : product.price
 
   return (
     <article className="flex flex-col">
@@ -106,7 +113,7 @@ export function ProductCard({
           {formatPrice(price)}
         </span>
         {discounted && (
-          <span className="text-sm text-muted line-through">{formatPrice(product.price)}</span>
+          <span className="text-sm text-muted line-through">{formatPrice(listPrice)}</span>
         )}
       </div>
 

@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useBackdropTone } from '../hooks/useBackdropTone'
+import { useCartEntry } from '../hooks/useCartEntry'
 
 /**
  * Floating cart button, carrying the same red count badge as the cart button in
@@ -14,7 +15,8 @@ import { useBackdropTone } from '../hooks/useBackdropTone'
  * behind it and flips white over dark backgrounds, navy over light ones.
  */
 export function CartMenuButton() {
-  const { openCart, cartCount } = useApp()
+  const { cartCount } = useApp()
+  const openTheCart = useCartEntry()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const { pathname } = useLocation()
   const backdrop = useBackdropTone(buttonRef, [pathname])
@@ -27,7 +29,7 @@ export function CartMenuButton() {
         <button
           ref={buttonRef}
           type="button"
-          onClick={openCart}
+          onClick={openTheCart}
           className={`pointer-events-auto relative rounded-full p-2 transition-colors duration-200 ${
             backdrop === 'dark'
               ? 'text-white drop-shadow hover:bg-white/15'

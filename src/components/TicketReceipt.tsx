@@ -1,6 +1,6 @@
 import { Banknote, CreditCard, Smartphone } from 'lucide-react'
 import { formatPrice, getProduct, type Order, type Store } from '../data'
-import { unitLabel } from '../lib/packaging'
+import { describeAmount } from '../lib/packaging'
 
 /** "19 Jun 2025 • 10:15" */
 function formatPlaced(iso: string): string {
@@ -63,9 +63,10 @@ export function TicketReceipt({
                     {product?.name ?? 'Product'}
                   </span>
                   <span className="block text-xs text-muted">
-                    {line.quantity} × {line.units}{' '}
-                    {product ? unitLabel(product.unit, line.units) : 'units'}
-                    {line.unitType ? ` · ${line.unitType}` : ''}
+                    {line.quantity} ×{' '}
+                    {product
+                      ? describeAmount(product, line.packaging, line.units, line.size)
+                      : `${line.units} units`}
                   </span>
                 </span>
                 <span className="shrink-0 text-sm font-semibold text-ink">

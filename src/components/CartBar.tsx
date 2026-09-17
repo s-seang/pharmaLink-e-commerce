@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext'
+import { useApp, type StoreCart } from '../context/AppContext'
 import { formatPrice, getProduct } from '../data'
 import { itemListPrice } from '../lib/packaging'
 
@@ -15,16 +15,14 @@ import { itemListPrice } from '../lib/packaging'
  * its own height at the foot of the page, so it never buries the last row of
  * products the way an out-of-flow bar does.
  *
- * There is one of these for the whole app rather than one per store page,
- * because a cart belongs to a single pharmacy: the bar names that pharmacy
- * wherever the shopper has wandered to.
+ * It summarises one pharmacy's basket — the shop whose page this is — since
+ * each shop's basket is checked out on its own.
  */
-export function CartBar() {
-  const { cart, cartStore, cartCount, cartTotal, openCart } = useApp()
+export function CartBar({ basket }: { basket: StoreCart }) {
+  const { setActiveStore, openCart } = useApp()
+  const { store: cartStore, lines, count: cartCount, total: cartTotal } = basket
 
-  if (cart.length === 0 || !cartStore) return null
-
-  const before = cart.reduce((sum, item) => {
+  const before = lines.reduce((sum, item) => {
     const product = getProduct(item.productId)
     return product ? sum + itemListPrice(product, item.units) * item.quantity : sum
   }, 0)
@@ -35,7 +33,10 @@ export function CartBar() {
       <div className="app-container px-0">
         <button
           type="button"
-          onClick={openCart}
+          onClick={() => {
+            setActiveStore(cartStore.id)
+            openCart()
+          }}
           className="flex w-full items-center gap-3 rounded-2xl bg-navy px-4 py-3 text-white shadow-lg transition-colors hover:bg-navy-deep"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm font-bold">

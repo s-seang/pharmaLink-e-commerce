@@ -4,7 +4,6 @@ import { AuthModal } from './AuthModal'
 import { CartBar } from './CartBar'
 import { CartDrawer } from './CartDrawer'
 import { CartMenuButton } from './CartMenuButton'
-import { CartStoreDialog } from './CartStoreDialog'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -17,7 +16,7 @@ export function Layout({
   children,
   header = 'default',
   floatingCart = true,
-  cartBar = false,
+  cartBarStore,
   background = 'white',
 }: {
   children: ReactNode
@@ -27,14 +26,13 @@ export function Layout({
   /** Store pages set this false — the bottom cart bar already names the store. */
   floatingCart?: boolean
   /**
-   * Only a pharmacy's own page opts in. Everywhere else the cart is reached
-   * through the icon in the header, so the bar does not follow the shopper
-   * around the app — it belongs to the shop they are standing in.
+   * A pharmacy's own page passes its id. The bar then summarises that shop's
+   * basket, rather than following the shopper around the app.
    */
-  cartBar?: boolean
+  cartBarStore?: string
 }) {
-  const { cart } = useApp()
-  const showCartBar = cartBar && cart.length > 0
+  const { carts } = useApp()
+  const basket = cartBarStore ? carts.find((entry) => entry.store.id === cartBarStore) : undefined
 
   return (
     <div
@@ -46,11 +44,10 @@ export function Layout({
           end of it. */}
       <main className="flex flex-1 flex-col">
         <div className="flex-1">{children}</div>
-        {showCartBar && <CartBar />}
+        {basket && <CartBar basket={basket} />}
       </main>
       <Footer />
       <CartDrawer />
-      <CartStoreDialog />
       <AuthModal />
     </div>
   )
