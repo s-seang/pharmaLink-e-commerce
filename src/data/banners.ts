@@ -1,8 +1,9 @@
-import collagenSale from '../assets/image1.png'
+import sunscreenSale from '../assets/image6.png'
 import vegansSale from '../assets/image2.png'
 import vitaminC from '../assets/image3.png'
 import dermaCo from '../assets/image4.png'
 import cosmeticsSale from '../assets/image5.png'
+import primeDay from '../assets/image7.png'
 
 export interface Banner {
   id: string
@@ -15,10 +16,10 @@ export interface Banner {
 
 export const banners: Banner[] = [
   {
-    id: 'collagen-sale',
-    image: collagenSale,
-    alt: 'Pay day sale — flat 10% plus an extra 5% off beauty protein collagen',
-    to: '/search?category=Supplement',
+    id: 'sunscreen-sale',
+    image: sunscreenSale,
+    alt: 'Prime Day, 23 to 26 June — buy two sunscreens and get 10% off',
+    to: '/search?category=Cosmetic',
   },
   {
     id: 'vegans-sale',
@@ -43,5 +44,11 @@ export const banners: Banner[] = [
     image: cosmeticsSale,
     alt: 'Premium cosmetics — 40% off',
     to: '/search?category=Cosmetic',
+  },
+  {
+    id: 'prime-day',
+    image: primeDay,
+    alt: 'Prime Day, 23 to 26 June — up to 30% off selected items',
+    to: '/discounts',
   },
 ]
