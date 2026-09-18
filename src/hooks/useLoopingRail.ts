@@ -77,12 +77,41 @@ export function useDriftingRail(
     let frame = 0
     let last = performance.now()
 
+    /**
+     * Where the second copy begins, measured rather than assumed: half the
+     * scroll width lands a gap's width short of it, and that shortfall is
+     * exactly the jump you see on every lap.
+     */
+    let wrapAt = 0
+    let measuredAt = -1
+    /**
+     * The position is kept here as a float rather than read back off the
+     * element each frame. At this speed a frame is a third of a pixel, and a
+     * browser rounds `scrollLeft` on read — so reading it back would throw
+     * every frame's movement away and the rail would sit still.
+     */
+    let position = element.scrollLeft
+
+    const measure = () => {
+      const kids = element.children
+      const first = kids[0] as HTMLElement | undefined
+      const second = kids[Math.floor(kids.length / 2)] as HTMLElement | undefined
+
+      wrapAt =
+        doubled && first && second
+          ? second.offsetLeft - first.offsetLeft
+          : element.scrollWidth - element.clientWidth
+      measuredAt = element.scrollWidth
+    }
+
     const hold = () => {
       held = true
     }
     const release = () => {
       held = false
       last = performance.now()
+      // Pick up wherever a manual swipe left it.
+      position = element.scrollLeft
     }
 
     element.addEventListener('pointerenter', hold)
@@ -95,10 +124,12 @@ export function useDriftingRail(
       const elapsed = now - last
       last = now
 
-      const wrapAt = doubled ? element.scrollWidth / 2 : element.scrollWidth - element.clientWidth
+      if (element.scrollWidth !== measuredAt) measure()
+
       if (!held && wrapAt > 0) {
-        const next = element.scrollLeft + (pxPerSecond * elapsed) / 1000
-        element.scrollLeft = next >= wrapAt ? next - wrapAt : next
+        position += (pxPerSecond * elapsed) / 1000
+        if (position >= wrapAt) position -= wrapAt
+        element.scrollLeft = position
       }
       frame = requestAnimationFrame(step)
     }

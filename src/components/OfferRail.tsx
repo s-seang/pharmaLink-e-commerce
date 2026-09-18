@@ -1,8 +1,5 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { bestDiscount, leadingCategory, stores, type Store } from '../data'
-import { useDriftingRail } from '../hooks/useLoopingRail'
 import { StoreLogo } from './StoreLogo'
 
 /** Offers run to the end of the month — the same date for every shop. */
@@ -20,11 +17,11 @@ function expiresOn(): string {
  *
  * Built from the catalogue rather than a separate offers table — a shop's
  * headline number is simply the deepest discount it is actually running.
+ *
+ * The rail sits still: a coupon is something to read and decide on, so it waits
+ * to be swiped rather than sliding out from under the reader.
  */
 export function OfferRail() {
-  const rail = useRef<HTMLDivElement>(null)
-  useDriftingRail(rail, 22, true)
-
   const offers = stores
     .map((store) => ({ store, percent: bestDiscount(store.id) }))
     .filter((offer) => offer.percent > 0)
@@ -32,41 +29,13 @@ export function OfferRail() {
 
   if (offers.length === 0) return null
 
-  const scroll = (direction: 1 | -1) =>
-    rail.current?.scrollBy({ left: direction * 300, behavior: 'smooth' })
-
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="section-title">Popular offer of the day</h2>
+      <h2 className="section-title mb-3">Popular offer of the day</h2>
 
-        <div className="flex shrink-0 gap-2">
-          {([-1, 1] as const).map((direction) => (
-            <button
-              key={direction}
-              type="button"
-              onClick={() => scroll(direction)}
-              aria-label={direction === -1 ? 'Previous offers' : 'More offers'}
-              className="rounded-md bg-navy-tint p-1.5 text-navy transition-colors hover:bg-navy hover:text-white"
-            >
-              {direction === -1 ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div ref={rail} className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
-        {/* Laid out twice: the rail wraps at the halfway mark, where the second
-            run looks like the first, so the loop has no seam. The repeat is
-            hidden from screen readers — each offer is announced once. */}
-        {[...offers, ...offers].map(({ store, percent }, index) => (
-          <div
-            key={`${store.id}-${index}`}
-            aria-hidden={index >= offers.length}
-            className="contents"
-          >
-            <OfferCoupon store={store} percent={percent} index={index % offers.length} />
-          </div>
+      <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+        {offers.map(({ store, percent }, index) => (
+          <OfferCoupon key={store.id} store={store} percent={percent} index={index} />
         ))}
       </div>
     </section>
