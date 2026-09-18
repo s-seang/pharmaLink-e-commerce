@@ -220,7 +220,10 @@ export default function StorePage() {
               This pharmacy has no {filter.toLowerCase()} products listed yet.
             </p>
           ) : (
-            <div className="card divide-y divide-line px-4">
+            /* A single column of rows on a phone. On a laptop the same rows
+               pair up, so a long shelf is half as much scrolling — the rule
+               between them moves from the divider to a border per row. */
+            <div className="card divide-y divide-line px-4 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:divide-y-0 lg:px-5 lg:[&>*:nth-child(-n+2)]:border-t-0 lg:[&>*]:border-t lg:[&>*]:border-line">
               {visible.map((product) => (
                 <StoreProductRow key={product.id} product={product} />
               ))}

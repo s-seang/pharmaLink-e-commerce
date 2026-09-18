@@ -116,7 +116,7 @@ export default function Stores() {
             No pharmacy matched “{query}”.
           </p>
         ) : (
-          <div className="space-y-2.5">
+          <div className="grid gap-2.5 lg:grid-cols-2 xl:grid-cols-3">
             {rows.map(({ store, km }) => (
               <StoreRow key={store.id} store={store} distanceKm={km} />
             ))}

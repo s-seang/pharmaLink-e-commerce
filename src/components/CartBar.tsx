@@ -30,7 +30,9 @@ export function CartBar({ basket }: { basket: StoreCart }) {
 
   return (
     <div data-cart-bar className="sticky bottom-4 z-40 mt-6 px-4">
-      <div className="app-container px-0">
+      {/* Held to a readable width on a laptop rather than stretched across the
+          whole window — it is one button, not a toolbar. */}
+      <div className="app-container px-0 lg:max-w-2xl">
         <button
           type="button"
           onClick={() => {

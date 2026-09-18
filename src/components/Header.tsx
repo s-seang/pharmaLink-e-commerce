@@ -131,9 +131,11 @@ function SearchBar() {
 
   return (
     <div className="app-container flex items-center gap-2 py-2">
+      {/* Capped on a laptop: a search field the width of the window is harder
+          to read, not easier. The cart keeps the far right either way. */}
       <form
         onSubmit={submitSearch}
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-surface px-4 py-2.5 focus-within:border-navy"
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-surface px-4 py-2.5 focus-within:border-navy lg:max-w-2xl"
         role="search"
       >
         <button type="submit" aria-label="Search" className="shrink-0 text-navy">
@@ -151,7 +153,7 @@ function SearchBar() {
       <button
         type="button"
         onClick={openTheCart}
-        className="relative shrink-0 rounded-lg p-2 text-navy-deep transition-colors hover:bg-navy-tint"
+        className="relative shrink-0 rounded-lg p-2 text-navy-deep transition-colors hover:bg-navy-tint lg:ml-auto"
         aria-label={`Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`}
       >
         <ShoppingCart size={22} />
@@ -202,7 +204,9 @@ function Filters() {
 
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="no-scrollbar mt-2 flex items-center gap-2 overflow-x-auto">
+    // A swipeable rail on a phone. Where there is width for all of them, they
+    // wrap instead — every category on screen beats a row that scrolls.
+    <div className="no-scrollbar mt-2 flex items-center gap-2 overflow-x-auto lg:flex-wrap lg:gap-y-2 lg:overflow-x-visible">
       <span className="shrink-0 text-xs font-semibold text-muted">{label}</span>
       {children}
     </div>

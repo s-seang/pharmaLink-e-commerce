@@ -85,7 +85,7 @@ export default function Discounts() {
             No discounts in {category} right now.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {items.map((product) => (
               <DealCard key={product.id} product={product} />
             ))}

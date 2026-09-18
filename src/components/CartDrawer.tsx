@@ -75,7 +75,7 @@ export function CartDrawer() {
         if (event.target === event.currentTarget) closeCart()
       }}
     >
-      <aside className="flex h-full w-full max-w-md flex-col bg-surface shadow-xl">
+      <aside className="flex h-full w-full max-w-md flex-col bg-surface shadow-xl lg:max-w-lg">
         <header className="flex items-center gap-2 border-b border-line bg-white px-4 py-3.5">
           <button
             type="button"

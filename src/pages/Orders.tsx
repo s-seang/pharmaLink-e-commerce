@@ -56,7 +56,7 @@ export default function Orders() {
             <p className="mb-4 text-xs text-muted">
               {shops.length} {shops.length === 1 ? 'pharmacy' : 'pharmacies'} you have ordered from
             </p>
-            <div className="space-y-8">
+            <div className="grid gap-8 lg:grid-cols-2">
               {shops.map(({ store, lastOrderedOn }) => (
                 <StoreBannerCard
                   key={store.id}

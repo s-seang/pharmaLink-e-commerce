@@ -183,7 +183,7 @@ export default function ProductDetail() {
         {moreFromStore.length > 0 && (
           <section>
             <h2 className="section-title mb-3">More from this store</h2>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {moreFromStore.slice(0, 4).map((item) => (
                 <ProductCard key={item.id} product={item} showStore={false} />
               ))}
@@ -194,7 +194,7 @@ export default function ProductDetail() {
         {similar.length > 0 && (
           <section>
             <h2 className="section-title mb-3">Similar products</h2>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {similar.slice(0, 4).map((item) => (
                 <ProductCard key={item.id} product={item} />
               ))}

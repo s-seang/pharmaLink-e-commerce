@@ -261,7 +261,7 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="grid gap-2 lg:grid-cols-2 xl:grid-cols-3">
               {browse.map(({ store, km }) => (
                 <StoreRow key={store.id} store={store} distanceKm={km} />
               ))}

@@ -10,7 +10,7 @@ export function DiscountGrid({ max = 6 }: { max?: number }) {
   const items = discountedProducts().slice(0, max)
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {items.map((product) => (
         <div key={product.id} className="card p-3">
           <ProductCard product={product} />
